@@ -98,7 +98,7 @@ export function BoardComponentSelect({
   };
 
   const handleAdd = () => {
-    if (!selectedDef) return;
+    if (!selectedDef || !selectedWebsiteId) return;
 
     const props: Record<string, any> = {};
 
@@ -136,6 +136,8 @@ export function BoardComponentSelect({
         props: { ...selectedDef.defaultProps, ...configValues },
       }
     : null;
+
+  const canSave = !!selectedDef && !!selectedWebsiteId;
 
   return (
     <Column gap="4">
@@ -271,7 +273,7 @@ export function BoardComponentSelect({
         <Button variant="quiet" onPress={onClose}>
           {t(labels.cancel)}
         </Button>
-        <Button variant="primary" onPress={handleAdd} isDisabled={!selectedDef}>
+        <Button variant="primary" onPress={handleAdd} isDisabled={!canSave}>
           {t(labels.save)}
         </Button>
       </Row>
