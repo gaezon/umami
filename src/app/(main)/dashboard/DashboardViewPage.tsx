@@ -1,6 +1,7 @@
 'use client';
 import { Column } from '@umami/react-zen';
 import { useEffect } from 'react';
+import { BoardControls } from '@/app/(main)/boards/[boardId]/BoardControls';
 import { BoardViewBody } from '@/app/(main)/boards/[boardId]/BoardViewBody';
 import { Empty } from '@/components/common/Empty';
 import { PageBody } from '@/components/common/PageBody';
@@ -39,6 +40,7 @@ export function DashboardViewPage() {
       <PageBody>
         <Column>
           <DashboardViewHeader />
+          <BoardControls />
           <DashboardContent />
         </Column>
       </PageBody>
