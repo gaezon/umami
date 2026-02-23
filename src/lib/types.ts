@@ -27,10 +27,11 @@ export interface Auth {
 export interface Filter {
   name: string;
   operator: Operator;
-  value: string;
+  value: string | string[];
   type?: string;
   column?: string;
   prefix?: string;
+  paramName?: string;
 }
 
 export interface DateRange {
@@ -52,6 +53,8 @@ export interface QueryOptions {
   limit?: number;
   prefix?: string;
   isCohort?: boolean;
+  cohortMatch?: string;
+  cohortActionName?: string;
 }
 
 export interface QueryFilters
@@ -92,6 +95,7 @@ export interface FilterParams {
   cohort?: string;
   compare?: string;
   excludeBounce?: boolean;
+  match?: 'all' | 'any';
 }
 
 export interface SortParams {

@@ -67,6 +67,7 @@ export const filterParams = {
   cohort: z.uuid().optional(),
   eventType: z.coerce.number().int().positive().optional(),
   excludeBounce: z.string().optional(),
+  match: z.enum(['all', 'any']).optional(),
 };
 
 export const searchParams = {
@@ -143,6 +144,8 @@ export const operatorParam = z.enum([
   'ns',
   'c',
   'dnc',
+  're',
+  'nre',
   't',
   'f',
   'gt',
@@ -227,6 +230,7 @@ export const revenueReportSchema = z.object({
     unit: unitParam.optional(),
     timezone: timezoneParam.optional(),
     currency: z.string(),
+    compare: z.enum(['prev', 'yoy']).optional(),
   }),
 });
 
@@ -292,6 +296,7 @@ export const segmentParamSchema = z.object({
       }),
     )
     .optional(),
+  match: z.enum(['all', 'any']).optional(),
   dateRange: z.string().optional(),
   action: z
     .object({

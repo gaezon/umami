@@ -70,47 +70,73 @@ function getSearchSQL(column: string, param: string = 'search'): string {
   return `and positionCaseInsensitive(${column}, {${param}:String}) > 0`;
 }
 
-function mapFilter(column: string, operator: string, name: string, type: string = 'String') {
-  const value = `{${name}:${type}}`;
+function mapFilter(
+  column: string,
+  operator: string,
+  name: string,
+  type: string = 'String',
+  paramName?: string,
+) {
+  const param = paramName ?? name;
+  const value = `{${param}:${type}}`;
 
   switch (operator) {
     case OPERATORS.equals:
-      return `${column} = ${value}`;
+      return `${column} IN {${param}:Array(${type})}`;
     case OPERATORS.notEquals:
-      return `${column} != ${value}`;
+      return `${column} NOT IN {${param}:Array(${type})}`;
     case OPERATORS.contains:
       return `positionCaseInsensitive(${column}, ${value}) > 0`;
     case OPERATORS.doesNotContain:
       return `positionCaseInsensitive(${column}, ${value}) = 0`;
+    case OPERATORS.regex:
+      return `match(${column}, ${value})`;
+    case OPERATORS.notRegex:
+      return `not match(${column}, ${value})`;
     default:
       return '';
   }
 }
 
 function getFilterQuery(filters: Record<string, any>, options: QueryOptions = {}) {
-  const query = filtersObjectToArray(filters, options).reduce((arr, { name, column, operator }) => {
-    const isCohort = options?.isCohort;
+  const { isCohort, cohortMatch, cohortActionName } = options;
+  const isOr = isCohort ? cohortMatch === 'any' : filters.match === 'any';
+  const orClauses: string[] = [];
+  const andClauses: string[] = [];
 
+  filtersObjectToArray(filters, options).forEach(({ name, column, operator, paramName }) => {
     if (isCohort) {
       column = FILTER_COLUMNS[name.slice('cohort_'.length)];
     }
 
     if (column) {
-      if (name === 'eventType') {
-        arr.push(`and ${mapFilter(column, operator, name, 'UInt32')}`);
+      const isAlwaysAnd = name === 'eventType' || (isCohort && name === cohortActionName);
+
+      if (isAlwaysAnd) {
+        andClauses.push(
+          `and ${mapFilter(column, operator, name, name === 'eventType' ? 'UInt32' : 'String', paramName)}`,
+        );
+      } else if (isOr) {
+        orClauses.push(mapFilter(column, operator, name, 'String', paramName));
       } else {
-        arr.push(`and ${mapFilter(column, operator, name)}`);
+        andClauses.push(`and ${mapFilter(column, operator, name, 'String', paramName)}`);
       }
 
       if (name === 'referrer') {
-        arr.push(`and referrer_domain != hostname`);
+        andClauses.push(`and referrer_domain != hostname`);
       }
     }
+  });
 
-    return arr;
-  }, []);
+  const parts: string[] = [];
 
-  return query.join('\n');
+  if (orClauses.length > 0) {
+    parts.push(`and (\n  ${orClauses.join('\n  or ')}\n)`);
+  }
+
+  parts.push(...andClauses);
+
+  return parts.join('\n');
 }
 
 function getCohortQuery(filters: Record<string, any>) {
@@ -118,7 +144,10 @@ function getCohortQuery(filters: Record<string, any>) {
     return '';
   }
 
-  const filterQuery = getFilterQuery(filters, { isCohort: true });
+  const cohortMatch = filters.cohort_match;
+  const cohortActionName = filters.cohort_actionName;
+
+  const filterQuery = getFilterQuery(filters, { isCohort: true, cohortMatch, cohortActionName });
 
   return `join (
       select distinct session_id
@@ -173,10 +202,19 @@ function getDateQuery(filters: Record<string, any>) {
 function getQueryParams(filters: Record<string, any>) {
   return {
     ...filters,
-    ...filtersObjectToArray(filters).reduce((obj, { name, value }) => {
-      if (name && value !== undefined) {
-        obj[name] = value;
-      }
+    ...filtersObjectToArray(filters).reduce((obj, { name, column, operator, value, paramName }) => {
+      const resolvedColumn =
+        column || (name?.startsWith('cohort_') && FILTER_COLUMNS[name.slice('cohort_'.length)]);
+
+      if (!resolvedColumn || !name || value === undefined) return obj;
+
+      const key = paramName ?? name;
+
+      obj[key] = ([OPERATORS.equals, OPERATORS.notEquals] as string[]).includes(operator)
+        ? Array.isArray(value)
+          ? value
+          : [value]
+        : value;
 
       return obj;
     }, {}),

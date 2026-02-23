@@ -71,8 +71,15 @@ function getSearchSQL(column: string, param: string = 'search'): string {
   return `and ${column} ilike {{${param}}}`;
 }
 
-function mapFilter(column: string, operator: string, name: string, type: string = '') {
-  const value = `{{${name}${type ? `::${type}` : ''}}}`;
+function mapFilter(
+  column: string,
+  operator: string,
+  name: string,
+  type: string = '',
+  paramName?: string,
+) {
+  const param = paramName ?? name;
+  const value = `{{${param}${type ? `::${type}` : ''}}}`;
 
   if (name.startsWith('cohort_')) {
     name = name.slice('cohort_'.length);
@@ -82,43 +89,64 @@ function mapFilter(column: string, operator: string, name: string, type: string 
 
   switch (operator) {
     case OPERATORS.equals:
-      return `${table}.${column} = ${value}`;
+      return `${table}.${column} = ANY(${value})`;
     case OPERATORS.notEquals:
-      return `${table}.${column} != ${value}`;
+      return `${table}.${column} != ALL(${value})`;
     case OPERATORS.contains:
       return `${table}.${column} ilike ${value}`;
     case OPERATORS.doesNotContain:
       return `${table}.${column} not ilike ${value}`;
+    case OPERATORS.regex:
+      return `${table}.${column} ~ ${value}`;
+    case OPERATORS.notRegex:
+      return `${table}.${column} !~ ${value}`;
     default:
       return '';
   }
 }
 
 function getFilterQuery(filters: Record<string, any>, options: QueryOptions = {}): string {
-  const query = filtersObjectToArray(filters, options).reduce(
-    (arr, { name, column, operator, prefix = '' }) => {
-      const isCohort = options?.isCohort;
+  const { isCohort, cohortMatch, cohortActionName } = options;
+  const isOr = isCohort ? cohortMatch === 'any' : filters.match === 'any';
+  const orClauses: string[] = [];
+  const andClauses: string[] = [];
 
+  filtersObjectToArray(filters, options).forEach(
+    ({ name, column, operator, prefix = '', paramName }) => {
       if (isCohort) {
         column = FILTER_COLUMNS[name.slice('cohort_'.length)];
       }
 
       if (column) {
-        arr.push(`and ${mapFilter(`${prefix}${column}`, operator, name)}`);
+        const clause = mapFilter(`${prefix}${column}`, operator, name, '', paramName);
+        const isAlwaysAnd = name === 'eventType' || (isCohort && name === cohortActionName);
+
+        if (isAlwaysAnd) {
+          andClauses.push(`and ${clause}`);
+        } else if (isOr) {
+          orClauses.push(clause);
+        } else {
+          andClauses.push(`and ${clause}`);
+        }
 
         if (name === 'referrer') {
-          arr.push(
+          andClauses.push(
             `and (website_event.referrer_domain != regexp_replace(website_event.hostname, '^www.', '') or website_event.referrer_domain is null)`,
           );
         }
       }
-
-      return arr;
     },
-    [],
   );
 
-  return query.join('\n');
+  const parts: string[] = [];
+
+  if (orClauses.length > 0) {
+    parts.push(`and (\n  ${orClauses.join('\n  or ')}\n)`);
+  }
+
+  parts.push(...andClauses);
+
+  return parts.join('\n');
 }
 
 function getCohortQuery(filters: QueryFilters = {}) {
@@ -126,7 +154,10 @@ function getCohortQuery(filters: QueryFilters = {}) {
     return '';
   }
 
-  const filterQuery = getFilterQuery(filters, { isCohort: true });
+  const cohortMatch = (filters as any).cohort_match;
+  const cohortActionName = (filters as any).cohort_actionName;
+
+  const filterQuery = getFilterQuery(filters, { isCohort: true, cohortMatch, cohortActionName });
 
   return `join
     (select distinct website_event.session_id
@@ -177,10 +208,21 @@ function getDateQuery(filters: Record<string, any>) {
 function getQueryParams(filters: Record<string, any>) {
   return {
     ...filters,
-    ...filtersObjectToArray(filters).reduce((obj, { name, operator, value }) => {
-      obj[name] = ([OPERATORS.contains, OPERATORS.doesNotContain] as Operator[]).includes(operator)
-        ? `%${value}%`
-        : value;
+    ...filtersObjectToArray(filters).reduce((obj, { name, column, operator, value, paramName }) => {
+      const resolvedColumn =
+        column || (name?.startsWith('cohort_') && FILTER_COLUMNS[name.slice('cohort_'.length)]);
+
+      if (!resolvedColumn) return obj;
+
+      const key = paramName ?? name;
+
+      if (([OPERATORS.contains, OPERATORS.doesNotContain] as Operator[]).includes(operator)) {
+        obj[key] = `%${value}%`;
+      } else if (([OPERATORS.equals, OPERATORS.notEquals] as Operator[]).includes(operator)) {
+        obj[key] = Array.isArray(value) ? value : [value];
+      } else {
+        obj[key] = value;
+      }
 
       return obj;
     }, {}),
@@ -188,9 +230,10 @@ function getQueryParams(filters: Record<string, any>) {
 }
 
 function parseFilters(filters: Record<string, any>, options?: QueryOptions) {
-  const joinSession = Object.keys(filters).find(key =>
-    ['referrer', ...SESSION_COLUMNS].includes(key),
-  );
+  const joinSession = Object.keys(filters).find(key => {
+    const baseName = key.replace(/\d+$/, '');
+    return ['referrer', ...SESSION_COLUMNS].includes(baseName);
+  });
 
   const cohortFilters = Object.fromEntries(
     Object.entries(filters).filter(([key]) => key.startsWith('cohort_')),
