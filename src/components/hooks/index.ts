@@ -26,6 +26,8 @@ export * from './queries/useLoginQuery';
 export * from './queries/usePixelQuery';
 export * from './queries/usePixelsQuery';
 export * from './queries/useRealtimeQuery';
+export * from './queries/useReplayQuery';
+export * from './queries/useReplaysQuery';
 export * from './queries/useReportQuery';
 export * from './queries/useReportsQuery';
 export * from './queries/useResultQuery';

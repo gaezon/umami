@@ -18,6 +18,7 @@ next-env.d.ts
 # production
 /build
 /public/script.js
+/public/recorder.js
 /geo
 /dist
 /generated

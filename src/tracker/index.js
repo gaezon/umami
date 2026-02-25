@@ -298,6 +298,7 @@
     window.umami = {
       track,
       identify,
+      getSession: () => ({ cache, website }),
     };
   }
 
