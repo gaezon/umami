@@ -132,6 +132,7 @@ export const reportTypeParam = z.enum([
   'funnel',
   'goal',
   'journey',
+  'performance',
   'retention',
   'revenue',
   'utm',
@@ -222,6 +223,17 @@ export const utmReportSchema = z.object({
   }),
 });
 
+export const performanceReportSchema = z.object({
+  type: z.literal('performance'),
+  parameters: z.object({
+    startDate: z.coerce.date(),
+    endDate: z.coerce.date(),
+    unit: unitParam.optional(),
+    timezone: timezoneParam.optional(),
+    metric: z.enum(['lcp', 'inp', 'cls', 'fcp', 'ttfb']).optional(),
+  }),
+});
+
 export const revenueReportSchema = z.object({
   type: z.literal('revenue'),
   parameters: z.object({
@@ -267,6 +279,7 @@ export const reportTypeSchema = z.discriminatedUnion('type', [
   goalReportSchema,
   funnelReportSchema,
   journeyReportSchema,
+  performanceReportSchema,
   retentionReportSchema,
   utmReportSchema,
   revenueReportSchema,
