@@ -103,7 +103,7 @@ export function useWebsiteNavItems(websiteId: string) {
         },
         {
           id: 'replays',
-          label: formatMessage(labels.replays),
+          label: t(labels.replays),
           icon: <Video />,
           path: renderPath('/replays'),
         },
