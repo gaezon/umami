@@ -172,7 +172,7 @@ export function ShareNav({
         )}
       </Row>
       {!collapsed && (
-        <Column flexGrow={1} overflowY="auto">
+        <Column flexGrow={1} overflowY="auto" marginTop="6">
           <NavMenu
             items={items}
             selectedKey={selectedKey}
