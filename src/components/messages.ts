@@ -355,6 +355,16 @@ export const labels: Record<string, string> = {
   needsImprovement: 'label.needs-improvement',
   poor: 'label.poor',
   sampleSize: 'label.sample-size',
+  replays: 'label.replays',
+  replay: 'label.replay',
+  replayEnabled: 'label.replay-enabled',
+  sampleRate: 'label.sample-rate',
+  maskLevel: 'label.mask-level',
+  maxDuration: 'label.max-duration',
+  blockSelector: 'label.block-selector',
+  retentionDays: 'label.retention-days',
+  duration: 'label.duration',
+  recordedAt: 'label.recorded-at',
 };
 
 export const messages: Record<string, string> = {

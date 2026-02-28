@@ -353,7 +353,7 @@ SELECT
     count() as sample_count,
     toStartOfHour(created_at) as created_at
 FROM umami.website_performance
-GROUP BY website_id, url_path, toStartOfHour(created_at);
+GROUP BY website_id, url_path, created_at;
 
 -- Create session_replay
 CREATE TABLE umami.session_replay

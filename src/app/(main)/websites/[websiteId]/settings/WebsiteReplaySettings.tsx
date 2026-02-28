@@ -21,8 +21,8 @@ interface ReplayConfig {
 
 export function WebsiteReplaySettings({ websiteId }: { websiteId: string }) {
   const website = useWebsite();
-  const { formatMessage, labels, messages } = useMessages();
-  const { mutateAsync, error, touch, toast } = useUpdateQuery(`/websites/${websiteId}`);
+  const { t, labels, messages } = useMessages();
+  const { mutateAsync, touch, toast } = useUpdateQuery(`/websites/${websiteId}`);
   const [enabled, setEnabled] = useState(website?.replayEnabled ?? false);
 
   const config = (website?.replayConfig as ReplayConfig) || {};
@@ -41,7 +41,7 @@ export function WebsiteReplaySettings({ websiteId }: { websiteId: string }) {
       },
       {
         onSuccess: async () => {
-          toast(formatMessage(messages.saved));
+          toast(t(messages.saved));
           touch('websites');
           touch(`website:${website.id}`);
         },
@@ -61,35 +61,35 @@ export function WebsiteReplaySettings({ websiteId }: { websiteId: string }) {
       }}
     >
       <Column gap="4">
-        <Label>{formatMessage(labels.replays)}</Label>
+        <Label>{t(labels.replays)}</Label>
         <Switch isSelected={enabled} onChange={setEnabled}>
-          {formatMessage(labels.replayEnabled)}
+          {t(labels.replayEnabled)}
         </Switch>
         {enabled && (
           <>
-            <FormField name="sampleRate" label={formatMessage(labels.sampleRate)}>
+            <FormField name="sampleRate" label={t(labels.sampleRate)}>
               <TextField />
             </FormField>
             <FormField
               name="maskLevel"
-              label={`${formatMessage(labels.maskLevel)} (strict / moderate / relaxed)`}
+              label={`${t(labels.maskLevel)} (strict / moderate / relaxed)`}
             >
               <TextField />
             </FormField>
-            <FormField name="maxDuration" label={`${formatMessage(labels.maxDuration)} (ms)`}>
+            <FormField name="maxDuration" label={`${t(labels.maxDuration)} (ms)`}>
               <TextField />
             </FormField>
-            <FormField name="blockSelector" label={formatMessage(labels.blockSelector)}>
+            <FormField name="blockSelector" label={t(labels.blockSelector)}>
               <TextField />
             </FormField>
-            <FormField name="retentionDays" label={formatMessage(labels.retentionDays)}>
+            <FormField name="retentionDays" label={t(labels.retentionDays)}>
               <TextField />
             </FormField>
           </>
         )}
       </Column>
       <FormButtons>
-        <FormSubmitButton variant="primary">{formatMessage(labels.save)}</FormSubmitButton>
+        <FormSubmitButton variant="primary">{t(labels.save)}</FormSubmitButton>
       </FormButtons>
     </Form>
   );
