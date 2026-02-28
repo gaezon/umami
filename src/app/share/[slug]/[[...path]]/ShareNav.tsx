@@ -20,9 +20,9 @@ export function ShareNav({
   const { pathname } = useNavigation();
   const { slug, parameters, whiteLabel } = share;
 
-  const logoUrl = whiteLabel?.url || 'https://umami.is';
-  const logoName = whiteLabel?.name || 'umami';
-  const logoImage = whiteLabel?.image;
+  const logoDomain = whiteLabel?.domainName || 'https://umami.is';
+  const logoName = whiteLabel?.displayName || 'umami';
+  const logoImage = whiteLabel?.logoUrl;
 
   const renderPath = (path: string) => `/share/${slug}${path}`;
 
@@ -150,7 +150,7 @@ export function ShareNav({
     >
       <Row as="header" gap alignItems="center" justifyContent="space-between">
         {!collapsed && (
-          <a href={logoUrl} target="_blank" rel="noopener" style={{ marginLeft: 12 }}>
+          <a href={logoDomain} target="_blank" rel="noopener" style={{ marginLeft: 12 }}>
             <Row alignItems="center" gap>
               {logoImage ? (
                 <img src={logoImage} alt={logoName} style={{ height: 24 }} />

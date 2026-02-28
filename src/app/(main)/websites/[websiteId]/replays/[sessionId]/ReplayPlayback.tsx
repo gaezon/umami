@@ -9,7 +9,7 @@ import { ReplayPlayer } from './ReplayPlayer';
 export function ReplayPlayback({ websiteId, sessionId }: { websiteId: string; sessionId: string }) {
   const { data: replay, isLoading, error } = useReplayQuery(websiteId, sessionId);
   const { data: session } = useWebsiteSessionQuery(websiteId, sessionId);
-  const { formatMessage, labels } = useMessages();
+  const { t, labels } = useMessages();
 
   return (
     <LoadingPanel
@@ -25,9 +25,9 @@ export function ReplayPlayback({ websiteId, sessionId }: { websiteId: string; se
             <Row alignItems="center" gap="4">
               <Avatar seed={sessionId} size={48} />
               <Column>
-                <Text weight="bold">{formatMessage(labels.replay)}</Text>
+                <Text weight="bold">{t(labels.replay)}</Text>
                 <Text color="muted">
-                  {replay.eventCount} {formatMessage(labels.events).toLowerCase()}
+                  {replay.eventCount} {t(labels.events).toLowerCase()}
                 </Text>
               </Column>
             </Row>

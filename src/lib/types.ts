@@ -178,7 +178,7 @@ export interface Board extends Omit<PrismaBoard, 'parameters'> {
 }
 
 export interface WhiteLabel {
-  name: string;
-  url: string;
-  image: string;
+  displayName: string;
+  domainName: string;
+  logoUrl: string;
 }
