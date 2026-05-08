@@ -133,7 +133,7 @@ export function Chart({
           wrapper sizes purely from its parent (width: 100%, height: 100%)
           and Chart.js' ResizeObserver picks up viewport changes.
         */}
-        <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+        <div style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
           <canvas ref={canvas} style={{ position: 'absolute', top: 0, left: 0 }} />
         </div>
       </Box>
