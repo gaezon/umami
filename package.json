@@ -55,7 +55,7 @@
     "@clickhouse/client": "^1.22.0",
     "@date-fns/utc": "^2.1.1",
     "@dicebear/collection": "^9.4.2",
-    "@dicebear/core": "^10.3.0",
+    "@dicebear/core": "^9.4.2",
     "@hello-pangea/dnd": "^18.0.1",
     "@playwright/test": "^1.61.1",
     "@prisma/adapter-pg": "^7.8.0",
