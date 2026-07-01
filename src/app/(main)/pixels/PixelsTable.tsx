@@ -23,7 +23,7 @@ export function PixelsTable({ showActions, ...props }: PixelsTableProps) {
           return <Link href={renderUrl(`/pixels/${id}`)}>{name}</Link>;
         }}
       </DataColumn>
-      <DataColumn id="url" label={<SortableLabel label="URL" sortKey="slug" />}>
+      <DataColumn id="url" label={<SortableLabel label="URL" sortKey="slug" />} style={{ minWidth: 0 }}>
         {({ slug }: any) => {
           const url = getSlugUrl(slug);
           return (

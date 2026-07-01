@@ -27,6 +27,7 @@ export function LinksTable({ showActions, ...props }: LinksTableProps) {
         id="slug"
         label={<SortableLabel label={t(labels.link)} sortKey="slug" />}
         width="25%"
+        style={{ minWidth: 0 }}
       >
         {({ slug }: any) => {
           const url = getSlugUrl(slug);
@@ -37,6 +38,7 @@ export function LinksTable({ showActions, ...props }: LinksTableProps) {
         id="url"
         label={<SortableLabel label={t(labels.destinationUrl)} sortKey="url" />}
         width="30%"
+        style={{ minWidth: 0 }}
       >
         {({ url }: any) => {
           return <ExternalLink href={url}>{url}</ExternalLink>;
