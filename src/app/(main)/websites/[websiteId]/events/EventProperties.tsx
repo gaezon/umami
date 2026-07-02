@@ -14,12 +14,6 @@ import { DATA_TYPE } from '@/lib/constants';
 import type { PropertyFilter } from '@/lib/types';
 import { EventDataPivotTable } from '../event-data/EventDataPivotTable';
 
-const MOCK_WEBSITE_ID = '86d4095c-a2a8-4fc8-9521-103e858e2b41';
-const mockEventNames = Array.from(
-  { length: 50 },
-  (_, index) =>
-    `mock-event-${index + 1}-with-a-long-name-for-dropdown-overflow-and-selection-testing`,
-);
 const selectValueStyle = {
   display: 'block',
   overflow: 'hidden',
@@ -42,14 +36,9 @@ export function EventProperties({ websiteId }: { websiteId: string }) {
   const { data, isLoading, isFetching, error } = useEventDataPropertiesQuery(websiteId);
 
   const eventNames = useMemo<string[]>(() => {
-    const names = data ? [...new Set<string>(data.map((e: { eventName: string }) => e.eventName))] : [];
-
-    if (process.env.NODE_ENV !== 'development' || websiteId !== MOCK_WEBSITE_ID) {
-      return names;
-    }
-
-    return [...new Set([...names, ...mockEventNames])];
-  }, [data, websiteId]);
+    if (!data) return [];
+    return [...new Set<string>(data.map((e: { eventName: string }) => e.eventName))];
+  }, [data]);
 
   const properties = useMemo(() => {
     if (!data || !eventName) return [];
