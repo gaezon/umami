@@ -874,6 +874,17 @@ function ScrollHeatmapView({
   );
 }
 
+function getSnapshotFrameHeight(snapshot: HeatmapSnapshot) {
+  const { pageH, viewportH } = snapshot;
+
+  // Use the recorded viewport height for near-single-screen pages so `100vh` matches the visitor's screen.
+  if (pageH <= viewportH * 1.25) {
+    return viewportH;
+  }
+
+  return pageH;
+}
+
 function SnapshotPreview({
   snapshot,
   onReady,
@@ -893,6 +904,7 @@ function IframeSnapshot({
 }) {
   const [available, setAvailable] = useState(true);
   const iframeUrl = snapshot.url;
+  const frameHeight = getSnapshotFrameHeight(snapshot);
 
   useEffect(() => {
     setAvailable(true);
@@ -913,7 +925,12 @@ function IframeSnapshot({
   }
 
   return (
-    <div className={styles.snapshot}>
+    <div
+      className={styles.snapshot}
+      style={{
+        height: Math.max(1, frameHeight),
+      }}
+    >
       <iframe
         className={`${styles.snapshotIframe} rr-block`}
         src={iframeUrl}
