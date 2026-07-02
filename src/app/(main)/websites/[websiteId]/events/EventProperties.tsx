@@ -1,6 +1,7 @@
 'use client';
-import { Column, ComboBox, Grid, Label, ListItem, Row, Select } from '@umami/react-zen';
+import { Column, Grid, Label, ListItem, Row, Select } from '@umami/react-zen';
 import { useEffect, useMemo, useState } from 'react';
+import { ComboBox } from '@/components/common/ComboBox';
 import { LoadingPanel } from '@/components/common/LoadingPanel';
 import { Panel } from '@/components/common/Panel';
 import { useEventDataPropertiesQuery, useMessages } from '@/components/hooks';
@@ -13,8 +14,22 @@ import { DATA_TYPE } from '@/lib/constants';
 import type { PropertyFilter } from '@/lib/types';
 import { EventDataPivotTable } from '../event-data/EventDataPivotTable';
 
+const MOCK_WEBSITE_ID = '86d4095c-a2a8-4fc8-9521-103e858e2b41';
+const mockEventNames = Array.from(
+  { length: 50 },
+  (_, index) =>
+    `mock-event-${index + 1}-with-a-long-name-for-dropdown-overflow-and-selection-testing`,
+);
+const selectValueStyle = {
+  display: 'block',
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap' as const,
+};
+
 export function EventProperties({ websiteId }: { websiteId: string }) {
   const [eventName, setEventName] = useState('');
+  const [eventSearch, setEventSearch] = useState('');
   const [propertyName, setPropertyName] = useState('');
   const [propertyFilters, setPropertyFilters] = useState<PropertyFilter[]>([]);
   const { t, labels } = useMessages();
@@ -27,9 +42,14 @@ export function EventProperties({ websiteId }: { websiteId: string }) {
   const { data, isLoading, isFetching, error } = useEventDataPropertiesQuery(websiteId);
 
   const eventNames = useMemo<string[]>(() => {
-    if (!data) return [];
-    return [...new Set<string>(data.map((e: { eventName: string }) => e.eventName))];
-  }, [data]);
+    const names = data ? [...new Set<string>(data.map((e: { eventName: string }) => e.eventName))] : [];
+
+    if (process.env.NODE_ENV !== 'development' || websiteId !== MOCK_WEBSITE_ID) {
+      return names;
+    }
+
+    return [...new Set([...names, ...mockEventNames])];
+  }, [data, websiteId]);
 
   const properties = useMemo(() => {
     if (!data || !eventName) return [];
@@ -52,10 +72,24 @@ export function EventProperties({ websiteId }: { websiteId: string }) {
     );
   }, [properties, propertyName]);
 
+  const filteredEventNames = useMemo(() => {
+    if (!eventSearch) {
+      return eventNames;
+    }
+
+    const normalizedSearch = eventSearch.toLowerCase();
+
+    return eventNames.filter(name => name.toLowerCase().includes(normalizedSearch));
+  }, [eventNames, eventSearch]);
+
   const handleEventChange = (value: string) => {
     setEventName(value);
     setPropertyName('');
     setPropertyFilters([]);
+  };
+
+  const handleEventOpenChange = () => {
+    setEventSearch('');
   };
 
   return (
@@ -87,10 +121,18 @@ export function EventProperties({ websiteId }: { websiteId: string }) {
                 <Select
                   value={eventName}
                   onChange={handleEventChange}
+                  allowSearch
+                  searchValue={eventSearch}
+                  onSearch={setEventSearch}
+                  onOpenChange={handleEventOpenChange}
                   placeholder={t(labels.selectEvent)}
-                  maxHeight={480}
+                  maxHeight={400}
+                  buttonProps={{ style: { minWidth: 0, maxWidth: '100%', overflow: 'hidden' } }}
+                  renderValue={({ defaultChildren }) => (
+                    <span style={selectValueStyle}>{defaultChildren}</span>
+                  )}
                 >
-                  {eventNames.map(name => (
+                  {filteredEventNames.map(name => (
                     <ListItem key={name} id={name}>
                       {name}
                     </ListItem>
