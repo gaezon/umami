@@ -39,6 +39,7 @@
     "download-language-names": "node scripts/download-language-names.js",
     "change-password": "node scripts/change-password.js",
     "postbuild": "node scripts/postbuild.js",
+    "pretest": "pnpm build-db-client",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
