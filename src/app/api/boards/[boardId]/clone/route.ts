@@ -10,6 +10,8 @@ import {
   canCreateWebsite,
   canUpdateBoard,
   canViewBoardEntities,
+  hasValidBoardReports,
+  stripInvalidBoardReports,
 } from '@/permissions';
 import { createBoard, getBoard } from '@/queries/prisma';
 
@@ -57,12 +59,18 @@ export async function POST(request: Request, { params }: { params: Promise<{ boa
     return badRequest({ message: 'Board contains inaccessible entities.' });
   }
 
+  const sanitizedParameters = await stripInvalidBoardReports(sourceType, parameters);
+
+  if (!(await hasValidBoardReports(sourceType, sanitizedParameters))) {
+    return badRequest({ message: 'Board contains invalid saved reports.' });
+  }
+
   const result = await createBoard({
     id: uuid(),
     type: sourceType,
     name: body.name ?? sourceBoard.name,
     description: body.description ?? sourceBoard.description,
-    parameters: parameters as Prisma.InputJsonValue,
+    parameters: sanitizedParameters as Prisma.InputJsonValue,
     teamId: sourceBoard.teamId,
     userId: sourceBoard.teamId ? undefined : sourceBoard.userId ?? auth.user.id,
   });
