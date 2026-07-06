@@ -571,19 +571,12 @@ function ClickHeatmapView({
   }, [hasSnapshot, snapshot?.id]);
   const overlayGutter = Math.max(48, Math.round((viewport?.width ?? 1920) * 0.04));
   const maxPointX = visible.reduce((max, point) => Math.max(max, point.pageX), 0);
-  // Size the canvas to the actual page content (snapshot/viewport height) only.
-  // Outlier clicks recorded far below the real content are clipped by the
-  // canvas's `overflow: hidden` rather than stretching the canvas and leaving a
-  // large empty band at the bottom.
+  const snapshotHeight = snapshot ? getSnapshotFrameHeight(snapshot) : 0;
+  // Keep the canvas sized to real content and clip outlier clicks instead of stretching it.
   const baseWidth = Math.max(viewport?.pageW ?? 0, maxPointX + overlayGutter, 1);
   const renderWidth = viewport?.width ?? snapshot?.viewportW ?? baseWidth;
-  // When we have a snapshot, its captured page height is the authoritative
-  // content height (it ends at the real page bottom). Use it directly so the
-  // canvas isn't stretched by an inflated aggregate `viewport.pageH` from tall
-  // outlier sessions. Outlier click dots below the content are clipped by the
-  // canvas's `overflow: hidden`. Fall back to the aggregate height only when no
-  // snapshot is available.
-  const contentHeight = snapshot?.pageH || viewport?.pageH || 0;
+  // Match the canvas height to the snapshot height we actually render.
+  const contentHeight = snapshotHeight || viewport?.pageH || 0;
   const renderHeight = Math.max(contentHeight, 640);
   const hasMeasuredWidth = Boolean(viewport?.width || snapshot?.viewportW || maxPointX);
   const fit = useCanvasFit(renderWidth, renderHeight);
@@ -734,8 +727,9 @@ function ScrollHeatmapView({
   const pageH = viewport?.pageH ?? scroll?.pageH ?? 0;
   const viewportW = viewport?.width ?? scroll?.viewportW ?? 0;
   const viewportH = viewport?.viewportH ?? scroll?.viewportH ?? 0;
+  const snapshotHeight = snapshot ? getSnapshotFrameHeight(snapshot) : 0;
   const baseWidth = Math.max(pageW, 1);
-  const baseHeight = Math.max(pageH, 640);
+  const baseHeight = Math.max(snapshotHeight || pageH, 640);
   const renderWidth = viewport?.width ?? snapshot?.viewportW ?? viewportW ?? baseWidth;
   const renderHeight = baseHeight;
   const hasMeasuredWidth = Boolean(viewport?.width || snapshot?.viewportW || viewportW || pageW);
