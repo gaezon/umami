@@ -508,6 +508,7 @@ export function BoardComponentSelect({
                 config={previewConfig}
                 websiteId={resolvedEntityId}
                 entityType={resolvedEntityType}
+                isPreview
               />
             ) : (
               <Column alignItems="center" justifyContent="center" height="100%">

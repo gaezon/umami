@@ -6,7 +6,15 @@ import { Link2Off } from '@/components/icons';
 import { useReportQuery } from '@/components/hooks/queries/useReportQuery';
 import { Goal } from './Goal';
 
-export function BoardGoal({ websiteId, reportId }: { websiteId: string; reportId?: string }) {
+export function BoardGoal({
+  websiteId,
+  reportId,
+  isPreview,
+}: {
+  websiteId: string;
+  reportId?: string;
+  isPreview?: boolean;
+}) {
   const {
     dateRange: { startDate, endDate },
   } = useDateRange();
@@ -15,9 +23,16 @@ export function BoardGoal({ websiteId, reportId }: { websiteId: string; reportId
   if (!reportId) {
     return (
       <EmptyPlaceholder
-        icon={<Link2Off />}
-        title="Reconnect goal"
-        description="Choose a goal for this website."
+        {...(isPreview
+          ? {
+              title: 'Select a goal',
+              description: 'Choose a saved goal to preview.',
+            }
+          : {
+              icon: <Link2Off />,
+              title: 'Reconnect goal',
+              description: 'Choose a goal for this website.',
+            })}
       />
     );
   }

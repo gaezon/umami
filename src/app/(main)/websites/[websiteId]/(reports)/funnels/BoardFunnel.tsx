@@ -5,15 +5,30 @@ import { Link2Off } from '@/components/icons';
 import { useReportQuery } from '@/components/hooks/queries/useReportQuery';
 import { Funnel } from './Funnel';
 
-export function BoardFunnel({ websiteId, reportId }: { websiteId: string; reportId?: string }) {
+export function BoardFunnel({
+  websiteId,
+  reportId,
+  isPreview,
+}: {
+  websiteId: string;
+  reportId?: string;
+  isPreview?: boolean;
+}) {
   const { data, isLoading, error, isFetching } = useReportQuery(reportId || '');
 
   if (!reportId) {
     return (
       <EmptyPlaceholder
-        icon={<Link2Off />}
-        title="Reconnect funnel"
-        description="Choose a funnel for this website."
+        {...(isPreview
+          ? {
+              title: 'Select a funnel',
+              description: 'Choose a saved funnel to preview.',
+            }
+          : {
+              icon: <Link2Off />,
+              title: 'Reconnect funnel',
+              description: 'Choose a funnel for this website.',
+            })}
       />
     );
   }
