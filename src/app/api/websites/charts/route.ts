@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { fromZonedTime } from 'date-fns-tz';
 import { parseDateRange } from '@/lib/date';
 import { parseRequest } from '@/lib/request';
 import { json } from '@/lib/response';
@@ -26,8 +27,10 @@ export async function GET(request: Request) {
   const timezone = query.timezone || 'UTC';
   const defaultRange = parseDateRange('7day', undefined, undefined, timezone);
   const hasDateRange = query.startAt != null && query.endAt != null;
-  const startDate = hasDateRange ? new Date(query.startAt) : defaultRange.startDate;
-  const endDate = hasDateRange ? new Date(query.endAt) : defaultRange.endDate;
+  const startDate = hasDateRange
+    ? new Date(query.startAt)
+    : fromZonedTime(defaultRange.startDate, timezone);
+  const endDate = hasDateRange ? new Date(query.endAt) : fromZonedTime(defaultRange.endDate, timezone);
 
   const websiteIds = (
     await Promise.all(
