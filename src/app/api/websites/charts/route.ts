@@ -1,10 +1,10 @@
 import { z } from 'zod';
 import { fromZonedTime } from 'date-fns-tz';
 import { parseDateRange } from '@/lib/date';
+import { canViewBatchWebsites } from '@/permissions/website';
 import { parseRequest } from '@/lib/request';
 import { json } from '@/lib/response';
 import { timezoneParam } from '@/lib/schema';
-import { canViewWebsite } from '@/permissions';
 import { getWebsiteListCharts } from '@/queries/sql';
 
 const schema = z.object({
@@ -32,13 +32,7 @@ export async function GET(request: Request) {
     : fromZonedTime(defaultRange.startDate, timezone);
   const endDate = hasDateRange ? new Date(query.endAt) : fromZonedTime(defaultRange.endDate, timezone);
 
-  const websiteIds = (
-    await Promise.all(
-      query.ids.map(async (websiteId: string) =>
-        (await canViewWebsite(auth, websiteId)) ? websiteId : null,
-      ),
-    )
-  ).filter(Boolean);
+  const websiteIds = await canViewBatchWebsites(auth, query.ids);
 
   const data = await getWebsiteListCharts(websiteIds, {
     startDate,
