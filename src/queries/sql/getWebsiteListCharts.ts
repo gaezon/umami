@@ -11,13 +11,8 @@ const BUCKET_HOURS = 12;
 
 interface WebsiteListChartPoint {
   websiteId: string;
-  x: string;
+  x: string | null;
   y: number;
-}
-
-interface WebsiteListChartTotal {
-  websiteId: string;
-  total: number;
 }
 
 export interface WebsiteListChartData {
@@ -45,20 +40,14 @@ export async function getWebsiteListCharts(
 
   return runQuery({
     [PRISMA]: async () => {
-      const [points, totals] = await Promise.all([
-        relationalQuery(websiteIds, startDate, endDate, timezone, eventType),
-        relationalTotalsQuery(websiteIds, startDate, endDate, eventType),
-      ]);
+      const points = await relationalQuery(websiteIds, startDate, endDate, timezone, eventType);
 
-      return formatResults({ points, totals, websiteIds, startDate, endDate, timezone });
+      return formatResults({ points, websiteIds, startDate, endDate, timezone });
     },
     [CLICKHOUSE]: async () => {
-      const [points, totals] = await Promise.all([
-        clickhouseQuery(websiteIds, startDate, endDate, timezone, eventType),
-        clickhouseTotalsQuery(websiteIds, startDate, endDate, eventType),
-      ]);
+      const points = await clickhouseQuery(websiteIds, startDate, endDate, timezone, eventType);
 
-      return formatResults({ points, totals, websiteIds, startDate, endDate, timezone });
+      return formatResults({ points, websiteIds, startDate, endDate, timezone });
     },
   });
 }
@@ -95,44 +84,21 @@ async function relationalQuery(
   return rawQuery(
     `
     select
-      website_event.website_id as "websiteId",
-      ${bucketSql} as x,
-      count(distinct website_event.session_id) as y
-    from website_event
-    where website_event.website_id = any({{websiteIds}}::uuid[])
-      ${eventTypeQuery}
-      and website_event.created_at between {{startDate}} and {{endDate}}
-    group by 1, 2
+      "websiteId",
+      x,
+      count(distinct session_id) as y
+    from (
+      select
+        website_event.website_id as "websiteId",
+        ${bucketSql} as x,
+        website_event.session_id
+      from website_event
+      where website_event.website_id = any({{websiteIds}}::uuid[])
+        ${eventTypeQuery}
+        and website_event.created_at between {{startDate}} and {{endDate}}
+    ) as events
+    group by grouping sets (("websiteId", x), ("websiteId"))
     order by 1, 2
-    `,
-    { websiteIds, startDate, endDate },
-    FUNCTION_NAME,
-  );
-}
-
-async function relationalTotalsQuery(
-  websiteIds: string[],
-  startDate: Date,
-  endDate: Date,
-  eventType?: number,
-): Promise<WebsiteListChartTotal[]> {
-  const { rawQuery } = prisma;
-  const eventTypeQuery =
-    eventType != null
-      ? `and website_event.event_type = ${eventType}`
-      : `and website_event.event_type NOT IN (${EVENT_TYPE.customEvent}, ${EVENT_TYPE.performance})`;
-
-  return rawQuery(
-    `
-    select
-      website_event.website_id as "websiteId",
-      count(distinct website_event.session_id) as total
-    from website_event
-    where website_event.website_id = any({{websiteIds}}::uuid[])
-      ${eventTypeQuery}
-      and website_event.created_at between {{startDate}} and {{endDate}}
-    group by 1
-    order by 1
     `,
     { websiteIds, startDate, endDate },
     FUNCTION_NAME,
@@ -169,37 +135,8 @@ async function clickhouseQuery(
     where website_id in {websiteIds:Array(UUID)}
       ${eventTypeQuery}
       and created_at between {startDate:DateTime64} and {endDate:DateTime64}
-    group by website_id, x
+    group by grouping sets ((website_id, x), (website_id))
     order by websiteId, x
-    `,
-    { websiteIds, startDate, endDate },
-    FUNCTION_NAME,
-  );
-}
-
-async function clickhouseTotalsQuery(
-  websiteIds: string[],
-  startDate: Date,
-  endDate: Date,
-  eventType?: number,
-): Promise<WebsiteListChartTotal[]> {
-  const { rawQuery } = clickhouse;
-  const eventTypeQuery =
-    eventType != null
-      ? `and event_type = ${eventType}`
-      : `and event_type NOT IN (${EVENT_TYPE.customEvent}, ${EVENT_TYPE.performance})`;
-
-  return rawQuery(
-    `
-    select
-      website_id as websiteId,
-      uniq(session_id) as total
-    from website_event_stats_hourly as website_event
-    where website_id in {websiteIds:Array(UUID)}
-      ${eventTypeQuery}
-      and created_at between {startDate:DateTime64} and {endDate:DateTime64}
-    group by website_id
-    order by websiteId
     `,
     { websiteIds, startDate, endDate },
     FUNCTION_NAME,
@@ -209,14 +146,12 @@ async function clickhouseTotalsQuery(
 function formatResults(
   {
     points,
-    totals,
     websiteIds,
     startDate,
     endDate,
     timezone,
   }: {
     points: WebsiteListChartPoint[];
-    totals: WebsiteListChartTotal[];
     websiteIds: string[];
     startDate: Date;
     endDate: Date;
@@ -243,16 +178,21 @@ function formatResults(
   }, {});
 
   points.forEach(({ websiteId, x, y }) => {
+    if (!charts[websiteId]) {
+      return;
+    }
+
+    // Subtotal rows from GROUPING SETS (null x on Postgres, '' on ClickHouse)
+    // carry the window-wide distinct total per website
+    if (!x) {
+      charts[websiteId].total = Number(y);
+      return;
+    }
+
     const index = bucketIndex.get(String(x).slice(0, 19));
 
-    if (index !== undefined && charts[websiteId]) {
+    if (index !== undefined) {
       charts[websiteId].values[index] = Number(y);
-    }
-  });
-
-  totals.forEach(({ websiteId, total }) => {
-    if (charts[websiteId]) {
-      charts[websiteId].total = Number(total);
     }
   });
 
