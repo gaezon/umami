@@ -4,6 +4,7 @@ export const labels: Record<string, string> = {
   required: 'label.required',
   save: 'label.save',
   cancel: 'label.cancel',
+  close: 'label.close',
   continue: 'label.continue',
   delete: 'label.delete',
   leave: 'label.leave',

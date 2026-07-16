@@ -1,7 +1,8 @@
+import { uuid } from '@/lib/crypto';
 import { parseRequest } from '@/lib/request';
 import { json, unauthorized } from '@/lib/response';
 import { canViewWebsiteSection } from '@/permissions';
-import { getWebsiteSession } from '@/queries/sql';
+import { getLinkedDistinctIds, getLinkedSessionIds, getWebsiteSession } from '@/queries/sql';
 
 export async function GET(
   request: Request,
@@ -28,5 +29,29 @@ export async function GET(
 
   const data = await getWebsiteSession(websiteId, sessionId);
 
-  return json(data);
+  let stitchedSessionCount = 0;
+
+  if (data) {
+    let sessionIds = [sessionId];
+    const distinctIds = data.distinctId
+      ? [data.distinctId]
+      : await getLinkedDistinctIds(websiteId, sessionId);
+
+    if (distinctIds.length) {
+      const links = await Promise.all(
+        distinctIds.map(distinctId => getLinkedSessionIds(websiteId, distinctId)),
+      );
+      const linkedIds = links.flatMap(group => group.map(link => link.sessionId));
+      const identifiedIds = distinctIds.map(distinctId => uuid(websiteId, distinctId));
+
+      sessionIds = Array.from(new Set([sessionId, ...identifiedIds, ...linkedIds]));
+    }
+
+    stitchedSessionCount = sessionIds.length;
+  }
+
+  return json({
+    ...data,
+    stitchedSessionCount,
+  });
 }
