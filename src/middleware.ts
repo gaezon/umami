@@ -1,5 +1,6 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
+import { PUBLIC_ARTICLE_VIEWS_ENDPOINT } from '@/lib/public-article-views';
 
 // 常量时间比较函数，对等长输入实现常数时间比较（防范时序攻击）
 function constantTimeEqual(a: string, b: string): boolean {
@@ -64,6 +65,7 @@ export async function middleware(request: NextRequest) {
     '/api/batch',
     '/api/record',
     '/api/heartbeat',
+    PUBLIC_ARTICLE_VIEWS_ENDPOINT,
   ];
   const envCollectEndpoint = process.env.COLLECT_API_ENDPOINT;
   if (envCollectEndpoint) {

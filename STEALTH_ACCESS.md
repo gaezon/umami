@@ -25,6 +25,7 @@
     *   `/api/batch`（用于批量提交数据）
     *   `/api/record`（用于会话录制数据提交）
     *   `/api/heartbeat`（用于系统健康度探针与外部可用性监控）
+    *   `/api/public/article-views`（仅返回经过严格路径校验的博客文章合计阅读量）
   * 基础静态资源：放行`/static/...`、`/robots.txt`。
   * **🚨 安全优化**：**已移除对整个 `/_next/` 全路径的通配放行**。系统已排除 `_next/static` 和 `_next/image` 等静态目录，任何请求 `/_next/data/...` 以获取后台 RSC (React Server Components) 数据结构的未授权尝试都会被中间件无条件拦截，彻底杜绝数据结构泄露。
 

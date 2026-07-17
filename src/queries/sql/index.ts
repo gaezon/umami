@@ -32,6 +32,7 @@ export * from './heatmap/saveHeatmapEvents';
 export * from './pageviews/getPageviewExpandedMetrics';
 export * from './pageviews/getPageviewMetrics';
 export * from './pageviews/getPageviewStats';
+export * from './pageviews/getPublicArticleViews';
 export * from './performance/getPerformanceStats';
 export * from './replays/getReplayChunks';
 export * from './replays/getSessionReplays';
