@@ -5,6 +5,7 @@ import { LinkButton } from '@/components/common/LinkButton';
 import { SortableLabel } from '@/components/common/SortableLabel';
 import { useMessages, useNavigation, useWebsiteListChartsQuery } from '@/components/hooks';
 import { SquarePen } from '@/components/icons';
+import { decodePunycodeDomain } from '@/lib/format';
 import { WebsiteSparkline } from './WebsiteSparkline';
 
 export interface WebsitesTableProps extends DataTableProps {
@@ -42,8 +43,12 @@ export function WebsitesTable({
         style={{ minWidth: 0 }}
       >
         {(row: any) => (
-          <Text truncate title={row.domain} style={{ maxWidth: '100%' }}>
-            {row.domain}
+          <Text
+            truncate
+            title={decodePunycodeDomain(row.domain) ?? undefined}
+            style={{ maxWidth: '100%' }}
+          >
+            {decodePunycodeDomain(row.domain)}
           </Text>
         )}
       </DataColumn>
