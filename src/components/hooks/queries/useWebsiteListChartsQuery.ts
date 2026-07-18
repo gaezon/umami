@@ -12,7 +12,7 @@ function useListChartsQuery(queryKey: string, path: string, idsInput: string[]) 
   const { timezone, canonicalizeTimezone } = useTimezone();
 
   const ids = useMemo(
-    () => Array.from(new Set(idsInput.map(id => id?.trim()).filter(Boolean))),
+    () => Array.from(new Set(idsInput.map(id => id?.trim()).filter(Boolean))).sort(),
     [idsInput],
   );
   const resolvedTimezone = canonicalizeTimezone(timezone);
@@ -25,6 +25,7 @@ function useListChartsQuery(queryKey: string, path: string, idsInput: string[]) 
         timezone: resolvedTimezone,
       }),
     enabled: ids.length > 0,
+    staleTime: 5 * 60 * 1000,
   });
 }
 

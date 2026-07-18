@@ -81,6 +81,7 @@ export function SessionProfile({
                   sessionId={sessionId}
                   startDate={data?.firstAt}
                   endDate={data?.lastAt}
+                  distinctId={data?.distinctId}
                 />
               </TabPanel>
               <TabPanel id="properties">
