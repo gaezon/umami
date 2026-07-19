@@ -10,6 +10,7 @@ import { fetchWebsite } from '@/lib/load';
 import { parseRequest } from '@/lib/request';
 import { badRequest, forbidden, json, serverError } from '@/lib/response';
 import { anyObjectParam, urlOrPathParam } from '@/lib/schema';
+import { getSessionId } from '@/lib/session';
 import { safeDecodeURI, safeDecodeURIComponent } from '@/lib/url';
 import { createSession, saveEvent, saveSessionData, saveSessionLink } from '@/queries/sql';
 
@@ -155,7 +156,7 @@ export async function POST(request: Request) {
     const sessionSalt = getSalt(saltRotation, createdAt);
     const visitSalt = hash(startOfHour(createdAt).toUTCString());
 
-    const sessionId = id ? uuid(sourceId, id) : uuid(sourceId, ip, userAgent, sessionSalt);
+    const sessionId = getSessionId(sourceId, ip, userAgent, sessionSalt, id);
 
     // Create a session if not found
     if (!clickhouse.enabled && !cache?.sessionId) {
@@ -284,7 +285,7 @@ export async function POST(request: Request) {
       if (websiteId && id) {
         // Persist both memberships so stitched activity can be resolved from
         // either the anonymous session or the identified session.
-        const anonymousSessionId = uuid(sourceId, ip, userAgent, sessionSalt);
+        const anonymousSessionId = getSessionId(sourceId, ip, userAgent, sessionSalt);
         const linkedSessionIds = [...new Set([anonymousSessionId, sessionId])];
         const newLinkId = hash(...linkedSessionIds, id);
 
