@@ -1,6 +1,5 @@
 import { z } from 'zod';
 import { FIELD_LENGTH } from '@/lib/constants';
-import { uuid } from '@/lib/crypto';
 import { getQueryFilters, parseRequest } from '@/lib/request';
 import { json, unauthorized } from '@/lib/response';
 import { canViewWebsiteSection } from '@/permissions';
@@ -45,9 +44,8 @@ export async function GET(
   if (distinctIds.length) {
     const links = await Promise.all(distinctIds.map(distinctId => getLinkedSessionIds(websiteId, distinctId)));
     const linkedIds = links.flatMap(group => group.map(link => link.sessionId));
-    const identifiedIds = distinctIds.map(distinctId => uuid(websiteId, distinctId));
 
-    sessionIds = Array.from(new Set([sessionId, ...identifiedIds, ...linkedIds]));
+    sessionIds = Array.from(new Set([sessionId, ...linkedIds]));
 
     if (sessionIds.length > 1) {
       const bounds = await getSessionActivityBounds(websiteId, sessionIds);

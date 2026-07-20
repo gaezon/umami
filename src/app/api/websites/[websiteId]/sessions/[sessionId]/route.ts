@@ -1,4 +1,3 @@
-import { uuid } from '@/lib/crypto';
 import { parseRequest } from '@/lib/request';
 import { json, unauthorized } from '@/lib/response';
 import { canViewWebsiteSection } from '@/permissions';
@@ -37,14 +36,17 @@ export async function GET(
       ? [data.distinctId]
       : await getLinkedDistinctIds(websiteId, sessionId);
 
+    if (!data.distinctId && distinctIds.length === 1) {
+      data.distinctId = distinctIds[0];
+    }
+
     if (distinctIds.length) {
       const links = await Promise.all(
         distinctIds.map(distinctId => getLinkedSessionIds(websiteId, distinctId)),
       );
       const linkedIds = links.flatMap(group => group.map(link => link.sessionId));
-      const identifiedIds = distinctIds.map(distinctId => uuid(websiteId, distinctId));
 
-      sessionIds = Array.from(new Set([sessionId, ...identifiedIds, ...linkedIds]));
+      sessionIds = Array.from(new Set([sessionId, ...linkedIds]));
     }
 
     stitchedSessionCount = sessionIds.length;
