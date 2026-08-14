@@ -17,7 +17,7 @@ jobs:
       contents: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           # Set fetch-depth to 0 to fetch all history for all branches and tags.
           # This is necessary for merging histories.
