@@ -5,9 +5,14 @@ on:
     - cron: '17 4 * * 0' # Runs every Sunday at 4:17 AM UTC.
   workflow_dispatch: # Allows you to run this workflow manually from the Actions tab
 
+concurrency:
+  group: sync-fork
+  cancel-in-progress: false
+
 jobs:
   sync:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     permissions:
       contents: write
     steps:
@@ -49,29 +54,55 @@ jobs:
           fi
 
       - name: Merge upstream changes
+        id: merge
         if: steps.check-merge.outputs.no-merge-needed == 'false'
         run: |
+          set -euo pipefail
+
           # Keep fork-local workflows unchanged to avoid push rejection for workflow updates.
           if ! git merge upstream/master --no-ff --no-edit --no-commit; then
-            echo "Merge conflict detected, aborting merge"
-            git merge --abort
-            exit 1
+            conflict_paths="$(git diff --name-only --diff-filter=U)"
+
+            if [ -z "$conflict_paths" ]; then
+              echo "Merge failed without file conflicts; aborting merge" >&2
+              git merge --abort || true
+              exit 1
+            fi
+
+            non_workflow_conflicts="$(printf '%s\n' "$conflict_paths" | grep -v '^\.github/workflows/' || true)"
+            if [ -n "$non_workflow_conflicts" ]; then
+              echo "::error::Unresolved non-workflow merge conflicts:" >&2
+              printf ' - %s\n' "$non_workflow_conflicts" >&2
+              git merge --abort
+              exit 1
+            fi
+
+            echo "Resolving fork-local workflow conflicts by keeping the current fork versions:"
+            while IFS= read -r path; do
+              [ -z "$path" ] && continue
+              echo " - $path"
+              git checkout --ours -- "$path"
+              git add -- "$path"
+            done <<< "$conflict_paths"
           fi
 
           # Drop upstream changes to workflow files before committing.
-          if git diff --name-only --cached -- '.github/workflows/*' | grep -q .; then
-            git restore --source=HEAD --staged --worktree '.github/workflows'
-          fi
+          workflow_changes="$(git diff --name-only --cached -- '.github/workflows/*' || true)"
+          while IFS= read -r path; do
+            [ -z "$path" ] && continue
+            if git cat-file -e "HEAD:$path" 2>/dev/null; then
+              git restore --source=HEAD --staged --worktree -- "$path"
+            else
+              git rm -f -- "$path"
+            fi
+          done <<< "$workflow_changes"
 
-          # If nothing remains after filtering workflow files, stop gracefully.
-          if git diff --cached --quiet; then
-            echo "No syncable changes remain after excluding workflow files"
-            echo "no-merge-needed=true" >> $GITHUB_OUTPUT
-          else
-            git commit --no-edit
-          fi
+          # Always record the upstream commit as a merge, even when upstream only
+          # changed workflow files that are intentionally kept fork-local.
+          git commit --no-edit --allow-empty
+          echo "should-push=true" >> "$GITHUB_OUTPUT"
 
       - name: Push changes
-        if: steps.check-merge.outputs.no-merge-needed == 'false'
+        if: steps.merge.outputs.should-push == 'true'
         run: |
-          git push origin master 
+          git push origin HEAD:master
