@@ -44,6 +44,7 @@ jobs:
           mkdir -p "$RUNNER_TEMP/umami-vercel-preview"
           git archive --format=tar HEAD | tar -x -C "$RUNNER_TEMP/umami-vercel-preview"
           cp .gitignore "$RUNNER_TEMP/umami-vercel-preview/.biomeignore"
+          sed -i 's/"useIgnoreFile": true/"useIgnoreFile": false/' "$RUNNER_TEMP/umami-vercel-preview/biome.json"
 
       - name: Deploy Preview
         id: vercel-deploy

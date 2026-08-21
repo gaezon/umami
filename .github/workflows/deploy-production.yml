@@ -50,6 +50,7 @@ jobs:
           mkdir -p "$RUNNER_TEMP/umami-vercel-production"
           git archive --format=tar HEAD | tar -x -C "$RUNNER_TEMP/umami-vercel-production"
           cp .gitignore "$RUNNER_TEMP/umami-vercel-production/.biomeignore"
+          sed -i 's/"useIgnoreFile": true/"useIgnoreFile": false/' "$RUNNER_TEMP/umami-vercel-production/biome.json"
 
       - name: Deploy Production
         run: |
