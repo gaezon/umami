@@ -50,7 +50,13 @@ jobs:
         id: vercel-deploy
         run: |
           cd "$RUNNER_TEMP/umami-vercel-preview"
-          deployment_url="$(env -u GITHUB_ACTIONS -u GITHUB_SHA -u GITHUB_REF -u GITHUB_REF_NAME -u GITHUB_HEAD_REF -u GITHUB_BASE_REF -u GITHUB_REPOSITORY npx --yes "vercel@${VERCEL_CLI_VERSION}" deploy --yes --token="$VERCEL_TOKEN")"
+          set +e
+          deployment_output="$(env -u GITHUB_ACTIONS -u GITHUB_SHA -u GITHUB_REF -u GITHUB_REF_NAME -u GITHUB_HEAD_REF -u GITHUB_BASE_REF -u GITHUB_REPOSITORY npx --yes "vercel@${VERCEL_CLI_VERSION}" deploy --yes --token="$VERCEL_TOKEN" 2>&1)"
+          deployment_exit=$?
+          set -e
+          printf '%s\n' "$deployment_output"
+          test "$deployment_exit" -eq 0
+          deployment_url="$(printf '%s\n' "$deployment_output" | awk '$1 == "Preview" { print $2 }' | tail -n 1)"
           test -n "$deployment_url"
           printf 'preview_url=%s\n' "$deployment_url" >> "$GITHUB_OUTPUT"
 
