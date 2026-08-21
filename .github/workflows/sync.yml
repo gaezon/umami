@@ -1,4 +1,4 @@
-name: Sync Fork
+name: Sync upstream
 
 on:
   schedule:
@@ -15,6 +15,7 @@ jobs:
     timeout-minutes: 15
     permissions:
       contents: write
+      pull-requests: write
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -42,8 +43,8 @@ jobs:
       - name: Check if merge is needed
         id: check-merge
         run: |
-          git checkout master
-          UPSTREAM_COMMITS=$(git rev-list --count HEAD..upstream/master)
+          git checkout -B migration-base origin/master
+          UPSTREAM_COMMITS=$(git rev-list --count origin/master..upstream/master)
           echo "upstream-commits=$UPSTREAM_COMMITS" >> $GITHUB_OUTPUT
           if [ "${UPSTREAM_COMMITS:-0}" -eq 0 ]; then
             echo "no-merge-needed=true" >> $GITHUB_OUTPUT
@@ -58,6 +59,9 @@ jobs:
         if: steps.check-merge.outputs.no-merge-needed == 'false'
         run: |
           set -euo pipefail
+
+          branch="sync/upstream-${{ github.run_id }}"
+          git checkout -B "$branch" origin/master
 
           # Keep fork-local workflows unchanged to avoid push rejection for workflow updates.
           if ! git merge upstream/master --no-ff --no-edit --no-commit; then
@@ -100,9 +104,35 @@ jobs:
           # Always record the upstream commit as a merge, even when upstream only
           # changed workflow files that are intentionally kept fork-local.
           git commit --no-edit --allow-empty
-          echo "should-push=true" >> "$GITHUB_OUTPUT"
+          echo "branch=$branch" >> "$GITHUB_OUTPUT"
 
-      - name: Push changes
-        if: steps.merge.outputs.should-push == 'true'
+      - name: Push sync branch and open PR
+        if: steps.check-merge.outputs.no-merge-needed == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BRANCH: ${{ steps.merge.outputs.branch }}
         run: |
-          git push origin HEAD:master
+          set -euo pipefail
+
+          git push --force-with-lease origin "$BRANCH"
+
+          pr_url="$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$BRANCH" --state open --json url --jq '.[0].url // empty')"
+          if [ -z "$pr_url" ]; then
+            pr_url="$({
+              gh pr create \
+                --repo "$GITHUB_REPOSITORY" \
+                --base master \
+                --head "$BRANCH" \
+                --title "chore: sync upstream/master" \
+                --body "Automated upstream sync. Review and approve the workflow-created CI runs before merge."
+            })"
+          fi
+
+          gh pr merge "$pr_url" --merge --auto --delete-branch
+
+      - name: Report sync PR
+        if: steps.check-merge.outputs.no-merge-needed == 'false'
+        env:
+          BRANCH: ${{ steps.merge.outputs.branch }}
+        run: |
+          echo "Opened or updated sync PR for $BRANCH"
