@@ -43,6 +43,7 @@ jobs:
           rm -rf "$RUNNER_TEMP/umami-vercel-preview"
           mkdir -p "$RUNNER_TEMP/umami-vercel-preview"
           git archive --format=tar HEAD | tar -x -C "$RUNNER_TEMP/umami-vercel-preview"
+          cp .gitignore "$RUNNER_TEMP/umami-vercel-preview/.biomeignore"
 
       - name: Deploy Preview
         id: vercel-deploy
