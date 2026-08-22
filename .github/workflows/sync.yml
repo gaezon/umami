@@ -63,7 +63,7 @@ jobs:
             echo "No new commits to merge"
           else
             echo "no-merge-needed=false" >> $GITHUB_OUTPUT
-            echo "Found $UPSTREAM_COMMITS upstream changes to merge"
+            echo "Found $UPSTREAM_COMMITS candidate upstream changes; validating the effective merge"
           fi
 
       - name: Merge upstream changes
@@ -132,13 +132,19 @@ jobs:
             fi
           done <<< "$workflow_changes"
 
-          # Always record the upstream commit as a merge, even when upstream only
-          # changed workflow files that are intentionally kept fork-local.
-          git commit --no-edit --allow-empty
+          if git diff --cached --quiet; then
+            echo "No effective upstream changes remain after preserving fork-local files"
+            echo "has-changes=false" >> "$GITHUB_OUTPUT"
+            git merge --abort || true
+            exit 0
+          fi
+
+          git commit --no-edit
+          echo "has-changes=true" >> "$GITHUB_OUTPUT"
           echo "branch=$branch" >> "$GITHUB_OUTPUT"
 
       - name: Push sync branch and open PR
-        if: steps.check-merge.outputs.no-merge-needed == 'false'
+        if: steps.check-merge.outputs.no-merge-needed == 'false' && steps.merge.outputs.has-changes == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           BRANCH: ${{ steps.merge.outputs.branch }}
@@ -160,7 +166,7 @@ jobs:
           fi
 
       - name: Report sync PR
-        if: steps.check-merge.outputs.no-merge-needed == 'false'
+        if: steps.check-merge.outputs.no-merge-needed == 'false' && steps.merge.outputs.has-changes == 'true'
         env:
           BRANCH: ${{ steps.merge.outputs.branch }}
         run: |
