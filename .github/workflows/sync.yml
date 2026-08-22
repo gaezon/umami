@@ -2,7 +2,7 @@ name: Sync upstream
 
 on:
   schedule:
-    - cron: '17 4 * * 0' # Runs every Sunday at 4:17 AM UTC.
+    - cron: '17 4 * * *' # Runs every day at 4:17 AM UTC.
   workflow_dispatch: # Allows you to run this workflow manually from the Actions tab
 
 concurrency:
@@ -44,14 +44,23 @@ jobs:
         id: check-merge
         run: |
           git checkout -B migration-base origin/master
-          UPSTREAM_COMMITS=$(git rev-list --count origin/master..upstream/master)
+          sync_base="origin/master"
+          if git show-ref --verify --quiet refs/remotes/origin/sync/upstream; then
+            sync_base="origin/sync/upstream"
+            echo "Using the existing sync branch as the comparison base"
+          fi
+
+          # Compare patch-equivalent commits instead of raw ancestry. The fork
+          # history has been reconciled with upstream more than once, so
+          # origin/master..upstream/master counts old upstream history again.
+          UPSTREAM_COMMITS=$(git cherry "$sync_base" upstream/master | awk '$1 == "+" { count++ } END { print count + 0 }')
           echo "upstream-commits=$UPSTREAM_COMMITS" >> $GITHUB_OUTPUT
           if [ "${UPSTREAM_COMMITS:-0}" -eq 0 ]; then
             echo "no-merge-needed=true" >> $GITHUB_OUTPUT
             echo "No new commits to merge"
           else
             echo "no-merge-needed=false" >> $GITHUB_OUTPUT
-            echo "Found $UPSTREAM_COMMITS new commits to merge"
+            echo "Found $UPSTREAM_COMMITS upstream changes to merge"
           fi
 
       - name: Merge upstream changes
@@ -60,7 +69,9 @@ jobs:
         run: |
           set -euo pipefail
 
-          branch="sync/upstream-${{ github.run_id }}"
+          # Keep one stable branch so daily runs update the existing review PR
+          # instead of opening a new PR while the previous one is pending.
+          branch="sync/upstream"
           git checkout -B "$branch" origin/master
 
           # Keep fork-local workflows unchanged to avoid push rejection for workflow updates.
@@ -127,8 +138,6 @@ jobs:
                 --body "Automated upstream sync. Review and approve the workflow-created CI runs before merge."
             })"
           fi
-
-          gh pr merge "$pr_url" --merge --auto --delete-branch
 
       - name: Report sync PR
         if: steps.check-merge.outputs.no-merge-needed == 'false'
