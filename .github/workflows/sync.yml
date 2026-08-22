@@ -74,6 +74,9 @@ jobs:
 
           # Keep one stable branch so daily runs update the existing review PR
           # instead of opening a new PR while the previous one is pending.
+          # This branch is bot-owned: each run rebuilds it from origin/master,
+          # so reviewers should approve or merge the PR rather than commit to
+          # sync/upstream directly.
           branch="sync/upstream"
           git checkout -B "$branch" origin/master
 
@@ -87,13 +90,13 @@ jobs:
               exit 1
             fi
 
-            # These known fork-local files preserve the fork's ignore rules,
-            # public article view export, and Vitest storage setup.
+            # Only workflow files and the fork's ignore rules are intentionally
+            # kept automatically. Application/test conflicts require review.
             non_fork_conflicts=""
             while IFS= read -r path; do
               [ -z "$path" ] && continue
               case "$path" in
-                .github/workflows/*|.gitignore|src/queries/sql/index.ts|src/test/setup.ts)
+                .github/workflows/*|.gitignore)
                   ;;
                 *)
                   non_fork_conflicts+="$path"$'\n'
@@ -112,7 +115,7 @@ jobs:
             while IFS= read -r path; do
               [ -z "$path" ] && continue
               case "$path" in
-                .github/workflows/*|.gitignore|src/queries/sql/index.ts|src/test/setup.ts)
+                .github/workflows/*|.gitignore)
                   echo " - $path"
                   git checkout --ours -- "$path"
                   git add -- "$path"
@@ -161,7 +164,7 @@ jobs:
                 --base master \
                 --head "$BRANCH" \
                 --title "chore: sync upstream/master" \
-                --body "Automated upstream sync. Review and approve the workflow-created CI runs before merge."
+                --body "Automated upstream sync. The sync/upstream branch is bot-owned and regenerated from master; do not commit directly to it. Review the upstream changes and workflow-created CI runs, then merge this PR manually."
             })"
           fi
 
