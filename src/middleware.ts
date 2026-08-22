@@ -159,6 +159,8 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  // 匹配除特定静态路径外的路由
-  matcher: ['/((?!_next/static|_next/image).*)'],
+  // 匹配需要访问控制的路由；公开入口直接绕过 Middleware
+  matcher: [
+    '/((?!_next/static|_next/image|favicon.ico|robots.txt|umami|api/send|api/config|api/batch|api/record|api/heartbeat|api/public/article-views).*)',
+  ],
 };
