@@ -42,12 +42,15 @@ jobs:
 
       - name: Check if merge is needed
         id: check-merge
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           git checkout -B migration-base origin/master
           sync_base="origin/master"
-          if git show-ref --verify --quiet refs/remotes/origin/sync/upstream; then
+          sync_pr_number="$(gh pr list --repo "$GITHUB_REPOSITORY" --head "sync/upstream" --state open --json number --jq '.[0].number // empty')"
+          if [ -n "$sync_pr_number" ] && git show-ref --verify --quiet refs/remotes/origin/sync/upstream; then
             sync_base="origin/sync/upstream"
-            echo "Using the existing sync branch as the comparison base"
+            echo "Using the existing sync PR branch as the comparison base"
           fi
 
           # Compare patch-equivalent commits instead of raw ancestry. The fork
