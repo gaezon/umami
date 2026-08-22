@@ -74,7 +74,7 @@ jobs:
           branch="sync/upstream"
           git checkout -B "$branch" origin/master
 
-          # Keep fork-local workflows unchanged to avoid push rejection for workflow updates.
+          # Keep fork-local files unchanged when their differences are intentional.
           if ! git merge upstream/master --no-ff --no-edit --no-commit; then
             conflict_paths="$(git diff --name-only --diff-filter=U)"
 
@@ -84,20 +84,37 @@ jobs:
               exit 1
             fi
 
-            non_workflow_conflicts="$(printf '%s\n' "$conflict_paths" | grep -v '^\.github/workflows/' || true)"
-            if [ -n "$non_workflow_conflicts" ]; then
+            # These known fork-local files preserve the fork's ignore rules,
+            # public article view export, and Vitest storage setup.
+            non_fork_conflicts=""
+            while IFS= read -r path; do
+              [ -z "$path" ] && continue
+              case "$path" in
+                .github/workflows/*|.gitignore|src/queries/sql/index.ts|src/test/setup.ts)
+                  ;;
+                *)
+                  non_fork_conflicts+="$path"$'\n'
+                  ;;
+              esac
+            done <<< "$conflict_paths"
+
+            if [ -n "$non_fork_conflicts" ]; then
               echo "::error::Unresolved non-workflow merge conflicts:" >&2
-              printf ' - %s\n' "$non_workflow_conflicts" >&2
+              printf ' - %s\n' "$non_fork_conflicts" >&2
               git merge --abort
               exit 1
             fi
 
-            echo "Resolving fork-local workflow conflicts by keeping the current fork versions:"
+            echo "Resolving fork-local conflicts by keeping the current fork versions:"
             while IFS= read -r path; do
               [ -z "$path" ] && continue
-              echo " - $path"
-              git checkout --ours -- "$path"
-              git add -- "$path"
+              case "$path" in
+                .github/workflows/*|.gitignore|src/queries/sql/index.ts|src/test/setup.ts)
+                  echo " - $path"
+                  git checkout --ours -- "$path"
+                  git add -- "$path"
+                  ;;
+              esac
             done <<< "$conflict_paths"
           fi
 
