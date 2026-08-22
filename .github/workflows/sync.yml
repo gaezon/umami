@@ -45,18 +45,48 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          workflow_checkpoint=""
+          if git cat-file -e "HEAD:.github/upstream-sync-base" 2>/dev/null; then
+            workflow_checkpoint="$(git show HEAD:.github/upstream-sync-base | tr -d '[:space:]')"
+          fi
+
           git checkout -B migration-base origin/master
-          sync_base="origin/master"
+          sync_base_ref="origin/master"
           sync_pr_number="$(gh pr list --repo "$GITHUB_REPOSITORY" --head "sync/upstream" --state open --json number --jq '.[0].number // empty')"
           if [ -n "$sync_pr_number" ] && git show-ref --verify --quiet refs/remotes/origin/sync/upstream; then
-            sync_base="origin/sync/upstream"
+            sync_base_ref="origin/sync/upstream"
             echo "Using the existing sync PR branch as the comparison base"
           fi
 
-          # Compare patch-equivalent commits instead of raw ancestry. The fork
-          # history has been reconciled with upstream more than once, so
-          # origin/master..upstream/master counts old upstream history again.
-          UPSTREAM_COMMITS=$(git cherry "$sync_base" upstream/master | awk '$1 == "+" { count++ } END { print count + 0 }')
+          if git cat-file -e "$sync_base_ref:.github/upstream-sync-base" 2>/dev/null; then
+            last_synced="$(git show "$sync_base_ref:.github/upstream-sync-base" | tr -d '[:space:]')"
+          elif [ -n "$workflow_checkpoint" ]; then
+            last_synced="$workflow_checkpoint"
+            echo "Using the checkpoint from the workflow ref"
+          else
+            echo "::error::Missing .github/upstream-sync-base checkpoint" >&2
+            exit 1
+          fi
+
+          current_upstream="$(git rev-parse upstream/master)"
+          if ! [[ "$last_synced" =~ ^[0-9a-fA-F]{40}$ ]]; then
+            echo "::error::Invalid upstream checkpoint: $last_synced" >&2
+            exit 1
+          fi
+          if ! git cat-file -e "$last_synced^{commit}" 2>/dev/null; then
+            echo "::error::Checkpoint commit is not available locally: $last_synced" >&2
+            exit 1
+          fi
+
+          if [ "$last_synced" = "$current_upstream" ]; then
+            UPSTREAM_COMMITS=0
+          elif ! git merge-base --is-ancestor "$last_synced" "$current_upstream"; then
+            echo "::error::Upstream history changed: checkpoint $last_synced is not an ancestor of $current_upstream" >&2
+            exit 1
+          else
+            UPSTREAM_COMMITS="$(git rev-list --count "$last_synced..$current_upstream")"
+          fi
+
           echo "upstream-commits=$UPSTREAM_COMMITS" >> $GITHUB_OUTPUT
           if [ "${UPSTREAM_COMMITS:-0}" -eq 0 ]; then
             echo "no-merge-needed=true" >> $GITHUB_OUTPUT
@@ -135,6 +165,10 @@ jobs:
             fi
           done <<< "$workflow_changes"
 
+          current_upstream="$(git rev-parse upstream/master)"
+          printf '%s\n' "$current_upstream" > .github/upstream-sync-base
+          git add .github/upstream-sync-base
+
           if git diff --cached --quiet; then
             echo "No effective upstream changes remain after preserving fork-local files"
             echo "has-changes=false" >> "$GITHUB_OUTPUT"
@@ -164,7 +198,7 @@ jobs:
                 --base master \
                 --head "$BRANCH" \
                 --title "chore: sync upstream/master" \
-                --body "Automated upstream sync. The sync/upstream branch is bot-owned and regenerated from master; do not commit directly to it. Review the upstream changes and workflow-created CI runs, then merge this PR manually."
+                --body "Automated upstream sync. The sync/upstream branch is bot-owned and regenerated from master; do not commit directly to it. Review the upstream changes and workflow-created CI runs, then use Create a merge commit (do not squash or rebase) to merge this PR manually."
             })"
           fi
 
