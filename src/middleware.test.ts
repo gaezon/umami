@@ -1,6 +1,27 @@
+import { unstable_doesMiddlewareMatch } from 'next/dist/experimental/testing/server/middleware-testing-utils.js';
 import { NextRequest } from 'next/server';
 import { afterEach, describe, expect, test, vi } from 'vitest';
-import { middleware } from './middleware';
+import { config, middleware } from './middleware';
+
+const doesMiddlewareMatch = (pathname: string) =>
+  unstable_doesMiddlewareMatch({
+    config,
+    url: `https://analytics.example.com${pathname}`,
+  });
+
+describe('stealth middleware matcher boundaries', () => {
+  test.each([
+    ['/api/send', false],
+    ['/api/send/foo', true],
+    ['/api/public/article-views', false],
+    ['/api/public/article-views/private', true],
+    ['/api/public/article-views-anything', true],
+    ['/umami', false],
+    ['/umami-whatever', true],
+  ])('%s matches Middleware: %s', (pathname, expected) => {
+    expect(doesMiddlewareMatch(pathname)).toBe(expected);
+  });
+});
 
 describe('stealth middleware public article views allowlist', () => {
   afterEach(() => {

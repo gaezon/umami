@@ -159,8 +159,8 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  // 匹配需要访问控制的路由；公开入口直接绕过 Middleware
+  // 仅让公开入口的精确路径绕过 Middleware；其子路径仍进入访问控制
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|robots.txt|umami|api/send|api/config|api/batch|api/record|api/heartbeat|api/public/article-views).*)',
+    '/((?!_next/static|_next/image|favicon\\.ico$|robots\\.txt$|umami$|api/send$|api/config$|api/batch$|api/record$|api/heartbeat$|api/public/article-views$).*)',
   ],
 };
