@@ -1,17 +1,13 @@
 #!/usr/bin/env bash
-# Sync this fork with umami-software/umami.
+# Upgrade this fork to the latest stable GitHub Release of umami-software/umami.
 #
-# The fork's git history was content-reconciled rather than merge-committed, so
-# `git merge upstream/master` replays thousands of diverged commits and conflicts
-# on fork-local files. The checkpoint in .github/upstream-sync-base is the last
-# upstream SHA we have already taken. New work is applied as:
-#   1. `git merge -s ours <checkpoint>` if that commit is not in HEAD (records
-#      the shared history without changing the tree)
-#   2. `git merge <current-upstream>` which is then incremental
+# Daily master commits are ignored on purpose: only published, non-prerelease
+# releases are candidates. A day with no new release is a no-op (no PR).
 set -euo pipefail
 
 CHECKPOINT_PATH=".github/upstream-sync-base"
 SYNC_BRANCH="sync/upstream"
+UPSTREAM_REPO="${UPSTREAM_REPO:-umami-software/umami}"
 
 github_output() {
   local key="$1"
@@ -21,85 +17,102 @@ github_output() {
   fi
 }
 
+github_output_multiline() {
+  local key="$1"
+  local value="$2"
+  if [ -n "${GITHUB_OUTPUT:-}" ]; then
+    local delim="EOF"
+    printf '%s<<%s\n%s\n%s\n' "$key" "$delim" "$value" "$delim" >>"$GITHUB_OUTPUT"
+  fi
+}
+
 read_checkpoint_at() {
   local ref="$1"
   if git cat-file -e "$ref:$CHECKPOINT_PATH" 2>/dev/null; then
-    git show "$ref:$CHECKPOINT_PATH" | tr -d '[:space:]'
+    git show "$ref:$CHECKPOINT_PATH" | head -n 1 | tr -d '[:space:]'
   fi
 }
 
-validate_checkpoint() {
+validate_sha() {
   local sha="$1"
   if ! [[ "$sha" =~ ^[0-9a-fA-F]{40}$ ]]; then
-    echo "::error::Invalid upstream checkpoint: $sha" >&2
+    echo "::error::Invalid commit SHA: $sha" >&2
     exit 1
   fi
   if ! git cat-file -e "$sha^{commit}" 2>/dev/null; then
-    echo "::error::Checkpoint commit is not available locally: $sha" >&2
+    echo "::error::Commit is not available locally: $sha" >&2
     exit 1
   fi
 }
 
-cmd_check() {
-  local workflow_checkpoint=""
-  if git cat-file -e "HEAD:$CHECKPOINT_PATH" 2>/dev/null; then
-    workflow_checkpoint="$(git show "HEAD:$CHECKPOINT_PATH" | tr -d '[:space:]')"
+latest_stable_release_tag() {
+  if [ -n "${LATEST_RELEASE_TAG:-}" ]; then
+    printf '%s\n' "$LATEST_RELEASE_TAG"
+    return 0
   fi
+  gh api "repos/${UPSTREAM_REPO}/releases/latest" --jq .tag_name
+}
 
+cmd_check() {
   git checkout -B migration-base origin/master
-  local sync_base_ref="origin/master"
-  local sync_pr_number=""
-  if [ -n "${GH_TOKEN:-}" ] && [ -n "${GITHUB_REPOSITORY:-}" ]; then
-    sync_pr_number="$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$SYNC_BRANCH" --state open --json number --jq '.[0].number // empty')"
-  fi
-  if [ -n "$sync_pr_number" ] && git show-ref --verify --quiet refs/remotes/origin/"$SYNC_BRANCH"; then
-    sync_base_ref="origin/$SYNC_BRANCH"
-    echo "Using the existing sync PR branch as the comparison base"
-  fi
 
   local last_synced=""
-  last_synced="$(read_checkpoint_at "$sync_base_ref")"
-  if [ -z "$last_synced" ] && [ -n "$workflow_checkpoint" ]; then
-    last_synced="$workflow_checkpoint"
+  last_synced="$(read_checkpoint_at origin/master)"
+  if [ -z "$last_synced" ] && git cat-file -e "HEAD:$CHECKPOINT_PATH" 2>/dev/null; then
+    last_synced="$(git show "HEAD:$CHECKPOINT_PATH" | head -n 1 | tr -d '[:space:]')"
     echo "Using the checkpoint from the workflow ref"
   fi
   if [ -z "$last_synced" ]; then
     echo "::error::Missing $CHECKPOINT_PATH checkpoint" >&2
     exit 1
   fi
+  validate_sha "$last_synced"
 
-  local current_upstream
-  current_upstream="$(git rev-parse "${UPSTREAM_REF:-upstream/master}")"
-  validate_checkpoint "$last_synced"
-
-  local UPSTREAM_COMMITS
-  if [ "$last_synced" = "$current_upstream" ]; then
-    UPSTREAM_COMMITS=0
-  elif ! git merge-base --is-ancestor "$last_synced" "$current_upstream"; then
-    echo "::error::Upstream history changed: checkpoint $last_synced is not an ancestor of $current_upstream" >&2
+  local release_tag
+  release_tag="$(latest_stable_release_tag)"
+  if [ -z "$release_tag" ]; then
+    echo "::error::Could not resolve the latest stable upstream release" >&2
     exit 1
-  else
-    UPSTREAM_COMMITS="$(git rev-list --count "$last_synced..$current_upstream")"
   fi
 
-  local history_unification_needed=false
-  if ! git merge-base --is-ancestor "$last_synced" origin/master; then
-    history_unification_needed=true
-    echo "Fork history does not contain checkpoint $last_synced; will unify before merging"
+  local release_sha
+  if [ -n "${LATEST_RELEASE_SHA:-}" ]; then
+    release_sha="$LATEST_RELEASE_SHA"
+  else
+    release_sha="$(git rev-parse "${release_tag}^{commit}")"
   fi
+  validate_sha "$release_sha"
 
   github_output "last-synced" "$last_synced"
-  github_output "current-upstream" "$current_upstream"
-  github_output "upstream-commits" "$UPSTREAM_COMMITS"
-  github_output "history-unification-needed" "$history_unification_needed"
+  github_output "release-tag" "$release_tag"
+  github_output "release-sha" "$release_sha"
+  github_output "current-upstream" "$release_sha"
 
-  if [ "${UPSTREAM_COMMITS:-0}" -eq 0 ] && [ "$history_unification_needed" = false ]; then
+  if [ "$last_synced" = "$release_sha" ]; then
+    github_output "upstream-commits" "0"
     github_output "no-merge-needed" "true"
-    echo "No new commits to merge"
-  else
-    github_output "no-merge-needed" "false"
-    echo "Found $UPSTREAM_COMMITS candidate upstream changes; unification_needed=$history_unification_needed"
+    echo "Already on latest stable release ${release_tag} (${release_sha})"
+    return 0
   fi
+
+  if ! git merge-base --is-ancestor "$last_synced" "$release_sha"; then
+    echo "::error::Latest release ${release_tag} (${release_sha}) is not a descendant of checkpoint ${last_synced}" >&2
+    exit 1
+  fi
+
+  local commit_count
+  commit_count="$(git rev-list --count "$last_synced..$release_sha")"
+  github_output "upstream-commits" "$commit_count"
+  github_output "no-merge-needed" "false"
+  echo "New stable release ${release_tag} (${commit_count} commits after checkpoint)"
+}
+
+mark_needs_manual() {
+  local conflicts="$1"
+  git merge --abort || true
+  github_output "has-changes" "false"
+  github_output "needs-manual" "true"
+  github_output_multiline "conflicts" "$conflicts"
 }
 
 resolve_fork_local_conflicts() {
@@ -108,8 +121,8 @@ resolve_fork_local_conflicts() {
 
   if [ -z "$conflict_paths" ]; then
     echo "Merge failed without file conflicts; aborting merge" >&2
-    git merge --abort || true
-    exit 1
+    mark_needs_manual "(merge failed without file conflicts)"
+    return 1
   fi
 
   local non_fork_conflicts=""
@@ -123,10 +136,10 @@ resolve_fork_local_conflicts() {
   done <<<"$conflict_paths"
 
   if [ -n "$non_fork_conflicts" ]; then
-    echo "::error::Unresolved non-workflow merge conflicts:" >&2
+    echo "Application conflicts require a manual upgrade:" >&2
     printf ' - %s\n' "$non_fork_conflicts" >&2
-    git merge --abort
-    exit 1
+    mark_needs_manual "$(printf '%s' "$non_fork_conflicts")"
+    return 1
   fi
 
   echo "Resolving fork-local conflicts by keeping the current fork versions:"
@@ -140,6 +153,7 @@ resolve_fork_local_conflicts() {
         ;;
     esac
   done <<<"$conflict_paths"
+  return 0
 }
 
 drop_upstream_workflow_changes() {
@@ -158,66 +172,109 @@ drop_upstream_workflow_changes() {
 
 cmd_merge() {
   local last_synced="${LAST_SYNCED:?LAST_SYNCED is required}"
-  local current_upstream="${CURRENT_UPSTREAM:?CURRENT_UPSTREAM is required}"
+  local release_sha="${CURRENT_UPSTREAM:?CURRENT_UPSTREAM is required}"
+  local release_tag="${RELEASE_TAG:-}"
   local upstream_commits="${UPSTREAM_COMMITS:?UPSTREAM_COMMITS is required}"
-  validate_checkpoint "$last_synced"
-  validate_checkpoint "$current_upstream"
+  validate_sha "$last_synced"
+  validate_sha "$release_sha"
+
+  github_output "needs-manual" "false"
+  github_output "has-changes" "false"
+
+  if [ "$upstream_commits" -eq 0 ]; then
+    echo "No new stable release to merge"
+    return 0
+  fi
 
   git checkout -B "$SYNC_BRANCH" origin/master
 
-  local unified=false
+  # Keep this inside an actual release upgrade so we never open a PR whose
+  # only job is to rewrite git history.
   if ! git merge-base --is-ancestor "$last_synced" HEAD; then
     echo "Recording checkpoint $last_synced as merged without taking its tree"
     git merge -s ours --no-ff --no-edit \
       -m "ci: record upstream checkpoint ${last_synced} as merged" \
       "$last_synced"
-    unified=true
   fi
 
-  if [ "$upstream_commits" -gt 0 ]; then
-    if ! git merge --no-ff --no-edit --no-commit "$current_upstream"; then
-      resolve_fork_local_conflicts
+  if ! git merge --no-ff --no-edit --no-commit "$release_sha"; then
+    if ! resolve_fork_local_conflicts; then
+      return 0
     fi
+  fi
 
-    drop_upstream_workflow_changes
+  drop_upstream_workflow_changes
 
-    printf '%s\n' "$current_upstream" >"$CHECKPOINT_PATH"
-    git add -- "$CHECKPOINT_PATH"
+  printf '%s\n' "$release_sha" >"$CHECKPOINT_PATH"
+  git add -- "$CHECKPOINT_PATH"
 
-    if git diff --cached --quiet && [ -z "$(git rev-parse -q --verify MERGE_HEAD || true)" ]; then
-      echo "No effective upstream changes remain after preserving fork-local files"
-      github_output "has-changes" "false"
-      git merge --abort || true
-      exit 0
-    fi
-
-    if git rev-parse -q --verify MERGE_HEAD >/dev/null; then
-      git commit --no-edit
-    elif ! git diff --cached --quiet; then
-      git commit -m "chore: sync upstream/master"
-    fi
-    github_output "has-changes" "true"
-    github_output "branch" "$SYNC_BRANCH"
+  if git diff --cached --quiet && [ -z "$(git rev-parse -q --verify MERGE_HEAD || true)" ]; then
+    echo "No effective changes from ${release_tag:-$release_sha} after preserving fork-local files"
+    git merge --abort || true
     return 0
   fi
 
-  if [ "$unified" = true ]; then
-    github_output "has-changes" "true"
-    github_output "branch" "$SYNC_BRANCH"
-    echo "History unification commit is ready on $SYNC_BRANCH"
+  local message="chore: upgrade umami to ${release_tag:-$release_sha}"
+  if git rev-parse -q --verify MERGE_HEAD >/dev/null; then
+    git commit --no-edit
+  elif ! git diff --cached --quiet; then
+    git commit -m "$message"
+  fi
+
+  github_output "has-changes" "true"
+  github_output "branch" "$SYNC_BRANCH"
+}
+
+issue_title_for() {
+  printf 'Manual upgrade needed: umami %s\n' "$1"
+}
+
+cmd_notify() {
+  local release_tag="${RELEASE_TAG:?RELEASE_TAG is required}"
+  local conflicts="${CONFLICTS:-}"
+  local title
+  title="$(issue_title_for "$release_tag")"
+
+  local existing=""
+  existing="$(
+    gh issue list --repo "$GITHUB_REPOSITORY" --state open --json number,title \
+      | jq -r --arg t "$title" '.[] | select(.title == $t) | .number' \
+      | head -n 1
+  )"
+  if [ -n "$existing" ]; then
+    echo "Issue #${existing} already tracks ${release_tag}"
+    github_output "already-reported" "true"
+    github_output "issue-number" "$existing"
     return 0
   fi
 
-  github_output "has-changes" "false"
+  local body
+  body="$(cat <<EOF
+Latest stable upstream release [${release_tag}](https://github.com/${UPSTREAM_REPO}/releases/tag/${release_tag}) does not apply cleanly onto this fork.
+
+Conflicting files:
+
+$(printf '%s\n' "$conflicts" | sed '/^$/d; s/^/- /')
+
+The daily job will keep watching this tag but will not open another issue until this one is closed.
+EOF
+)"
+
+  local url
+  url="$(gh issue create --repo "$GITHUB_REPOSITORY" --title "$title" --body "$body")"
+  echo "Opened $url"
+  github_output "already-reported" "false"
+  github_output "issue-url" "$url"
 }
 
 usage() {
-  echo "Usage: $0 check|merge" >&2
+  echo "Usage: $0 check|merge|notify" >&2
   exit 2
 }
 
 case "${1:-}" in
   check) cmd_check ;;
   merge) cmd_merge ;;
+  notify) cmd_notify ;;
   *) usage ;;
 esac
