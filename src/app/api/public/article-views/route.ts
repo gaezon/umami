@@ -8,7 +8,7 @@ import { getPublicArticleViews } from '@/queries/sql';
 
 const PUBLIC_HEADERS = {
   'Access-Control-Allow-Origin': '*',
-  'Cache-Control': 'public, max-age=60, s-maxage=600, stale-while-revalidate=60',
+  'Cache-Control': 'public, max-age=60, s-maxage=1800, stale-while-revalidate=21600',
 };
 
 const ERROR_HEADERS = {
