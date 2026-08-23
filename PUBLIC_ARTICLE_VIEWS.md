@@ -16,7 +16,7 @@ PUBLIC_ARTICLE_VIEWS_WEBSITE_ID=<博客在 Umami 中的 website UUID>
 GET /api/public/article-views
 ```
 
-成功响应由 CDN 缓存 10 分钟（`s-maxage=600`），浏览器缓存 1 分钟，并允许跨域只读请求。
+成功响应由 CDN 缓存 30 分钟（`s-maxage=1800`），浏览器缓存 1 分钟，过期后仍可在 6 小时内（`stale-while-revalidate=21600`）返回旧值并异步刷新，同时允许跨域只读请求。
 
 ## 请求参数
 
