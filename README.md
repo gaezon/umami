@@ -1,104 +1,100 @@
-<p align="center">
-  <img src="https://content.umami.is/website/images/umami-logo.png" alt="Umami Logo" width="100">
-</p>
+> **This is a personal fork, not the official Umami project.**  
+> **这是个人 fork，不是 [Umami](https://github.com/umami-software/umami) 官方项目。**
+>
+> Source of the original work: [github.com/umami-software/umami](https://github.com/umami-software/umami)  
+> Copyright (c) 2022 [Umami Software, Inc.](https://umami.is) — [MIT License](./LICENSE)
 
-<h1 align="center">Umami</h1>
+# Umami (personal fork)
 
-<p align="center">
-  <i>Umami is a privacy-first analytics platform. Traffic, campaigns, behavior, conversions, and revenue in one place — no cookies, no surveillance, self-hosted or in the cloud.</i>
-</p>
+This repository is a personal deployment of [Umami](https://umami.is), a privacy-first analytics platform. It tracks [upstream `master`](https://github.com/umami-software/umami) and adds a small set of local patches. It is **not affiliated with, endorsed by, or maintained by Umami Software, Inc.**
 
-<p align="center">
-  <a href="https://github.com/umami-software/umami/releases"><img src="https://img.shields.io/github/release/umami-software/umami.svg" alt="GitHub Release" /></a>
-  <a href="https://github.com/umami-software/umami/blob/master/LICENSE"><img src="https://img.shields.io/github/license/umami-software/umami.svg" alt="MIT License" /></a>
-  <a href="https://github.com/umami-software/umami/actions"><img src="https://img.shields.io/github/actions/workflow/status/umami-software/umami/ci.yml" alt="Build Status" /></a>
-  <a href="https://cloud.umami.is/share/LGazGOecbDtaIwDr/umami.is" style="text-decoration: none;"><img src="https://img.shields.io/badge/Try%20Demo%20Now-Click%20Here-brightgreen" alt="Umami Demo" /></a>
-</p>
+For the official project, docs, releases, and support, use:
+
+- Code: [github.com/umami-software/umami](https://github.com/umami-software/umami)
+- Docs: [umami.is/docs](https://umami.is/docs/)
+- Demo: [cloud.umami.is](https://cloud.umami.is/share/LGazGOecbDtaIwDr/umami.is)
+
+## Changes in this fork
+
+These are the local additions on top of upstream. They are not part of official Umami.
+
+- **Stealth access control** — hide the dashboard from scanners unless a signed cookie is present. See [STEALTH_ACCESS.md](./STEALTH_ACCESS.md).
+- **Public article-views API** — `GET /api/public/article-views` for blog pageview counts. See [PUBLIC_ARTICLE_VIEWS.md](./PUBLIC_ARTICLE_VIEWS.md).
+- **CI** — Vercel deploy workflows and automatic upstream sync.
+
+If you want stock Umami, clone and run the [official repository](https://github.com/umami-software/umami) instead. Official Docker images also do **not** include these patches.
+
+## License
+
+This project remains under the [MIT License](./LICENSE).
+
+The original software is copyright Umami Software, Inc. and its [contributors](https://github.com/umami-software/umami/graphs/contributors). Modifications in this fork are copyright the fork author, as noted in `LICENSE`. Keeping this repository public does not change that: the MIT condition is to preserve the copyright notice and license text, which this tree does.
 
 ---
 
-## 🚀 Getting Started
-
-A detailed getting started guide can be found at [umami.is/docs](https://umami.is/docs/).
-
----
-
-## 🛠 Installing from Source
+## Installing from source
 
 ### Requirements
 
-- A server with Node.js version 18.18+.
-- A PostgreSQL database version v12.14+.
+- Node.js 18.18+
+- PostgreSQL 12.14+
 
-### Get the source code and install packages
+### Get this fork and install packages
 
 ```bash
-git clone https://github.com/umami-software/umami.git
+git clone https://github.com/gaezon/umami.git
 cd umami
 pnpm install
 ```
 
-### Configure Umami
-
-Create an `.env` file with the following:
+To work from official Umami instead:
 
 ```bash
-DATABASE_URL=connection-url
+git clone https://github.com/umami-software/umami.git
 ```
 
-Optional: set `API_URL` to change the base URL used by internal UI API calls.
-Relative paths are served under `BASE_PATH`; absolute URLs are proxied through the local `/api` route.
-For example, `API_URL=/internal-api` or `API_URL=https://api.example.com/api`.
+### Configure
 
-Optional: set `TWO_FACTOR_ENCRYPTION_KEY` to a 64-character hex string to enable two-factor
-authentication. Generate one with `openssl rand -hex 32`. Two-factor authentication is unavailable
-and cannot be required until this key is set.
-
-The connection URL format:
+Create an `.env` file:
 
 ```bash
-postgresql://username:mypassword@localhost:5432/mydb
+DATABASE_URL=postgresql://username:mypassword@localhost:5432/mydb
 ```
 
-### Build the Application
+Optional: set `API_URL` to change the base URL used by internal UI API calls. Relative paths are served under `BASE_PATH`; absolute URLs are proxied through the local `/api` route. For example, `API_URL=/internal-api` or `API_URL=https://api.example.com/api`.
+
+Optional: set `TWO_FACTOR_ENCRYPTION_KEY` to a 64-character hex string to enable two-factor authentication. Generate one with `openssl rand -hex 32`. Two-factor authentication is unavailable until this key is set.
+
+Fork-specific variables are documented in [STEALTH_ACCESS.md](./STEALTH_ACCESS.md) and [PUBLIC_ARTICLE_VIEWS.md](./PUBLIC_ARTICLE_VIEWS.md).
+
+### Build and start
 
 ```bash
 pnpm run build
-```
-
-The build step will create tables in your database if you are installing for the first time. It will also create a login user with username **admin** and password **umami**.
-
-### Start the Application
-
-```bash
 pnpm run start
 ```
 
-By default, this will launch the application on `http://localhost:3000`. You will need to either [proxy](https://docs.nginx.com/nginx/admin-guide/web-server/reverse-proxy/) requests from your web server or change the [port](https://nextjs.org/docs/api-reference/cli#production) to serve the application directly.
+The first build creates database tables and a login user with username **admin** and password **umami**. The app listens on `http://localhost:3000` by default.
 
----
+Official install documentation: [umami.is/docs](https://umami.is/docs/).
 
-## 🐳 Installing with Docker
+## Docker
 
-Umami provides Docker images as well as a Docker compose file for easy deployment.
-
-Docker image:
+Official images do not contain this fork's patches:
 
 ```bash
 docker pull docker.umami.is/umami-software/umami:latest
 ```
 
-Docker compose (Runs Umami with a PostgreSQL database):
+To run **this** tree with Compose (PostgreSQL included):
 
 ```bash
 docker compose up -d
 ```
 
----
+## Updates
 
-## 🔄 Getting Updates
-
-To get the latest features, simply do a pull, install any new dependencies, and rebuild:
+This fork is meant to stay close to upstream. After pulling, reinstall and rebuild:
 
 ```bash
 git pull
@@ -106,35 +102,4 @@ pnpm install
 pnpm build
 ```
 
-To update the Docker image, simply pull the new images and rebuild:
-
-```bash
-docker compose pull
-docker compose up --force-recreate -d
-```
-
----
-
-## 🛟 Support
-
-<p align="center">
-  <a href="https://github.com/umami-software/umami"><img src="https://img.shields.io/badge/GitHub--blue?style=social&logo=github" alt="GitHub" /></a>
-  <a href="https://twitter.com/umami_software"><img src="https://img.shields.io/badge/Twitter--blue?style=social&logo=twitter" alt="Twitter" /></a>
-  <a href="https://linkedin.com/company/umami-software"><img src="https://img.shields.io/badge/LinkedIn--blue?style=social&logo=linkedin" alt="LinkedIn" /></a>
-  <a href="https://umami.is/discord"><img src="https://img.shields.io/badge/Discord--blue?style=social&logo=discord" alt="Discord" /></a>
-</p>
-
-[release-shield]: https://img.shields.io/github/release/umami-software/umami.svg
-[releases-url]: https://github.com/umami-software/umami/releases
-[license-shield]: https://img.shields.io/github/license/umami-software/umami.svg
-[license-url]: https://github.com/umami-software/umami/blob/master/LICENSE
-[build-shield]: https://img.shields.io/github/actions/workflow/status/umami-software/umami/ci.yml
-[build-url]: https://github.com/umami-software/umami/actions
-[github-shield]: https://img.shields.io/badge/GitHub--blue?style=social&logo=github
-[github-url]: https://github.com/umami-software/umami
-[twitter-shield]: https://img.shields.io/badge/Twitter--blue?style=social&logo=twitter
-[twitter-url]: https://twitter.com/umami_software
-[linkedin-shield]: https://img.shields.io/badge/LinkedIn--blue?style=social&logo=linkedin
-[linkedin-url]: https://linkedin.com/company/umami-software
-[discord-shield]: https://img.shields.io/badge/Discord--blue?style=social&logo=discord
-[discord-url]: https://discord.com/invite/4dz4zcXYrQ
+Upstream itself is [umami-software/umami](https://github.com/umami-software/umami).

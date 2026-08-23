@@ -32,7 +32,7 @@ describe('public article views route', () => {
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({ views: 42 });
     expect(response.headers.get('Cache-Control')).toBe(
-      'public, max-age=60, s-maxage=600, stale-while-revalidate=60',
+      'public, max-age=60, s-maxage=1800, stale-while-revalidate=21600',
     );
     expect(response.headers.get('Access-Control-Allow-Origin')).toBe('*');
     expect(getPublicArticleViews).toHaveBeenCalledWith(WEBSITE_ID, [
