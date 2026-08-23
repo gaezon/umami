@@ -44,141 +44,16 @@ jobs:
         id: check-merge
         env:
           GH_TOKEN: ${{ github.token }}
-        run: |
-          workflow_checkpoint=""
-          if git cat-file -e "HEAD:.github/upstream-sync-base" 2>/dev/null; then
-            workflow_checkpoint="$(git show HEAD:.github/upstream-sync-base | tr -d '[:space:]')"
-          fi
-
-          git checkout -B migration-base origin/master
-          sync_base_ref="origin/master"
-          sync_pr_number="$(gh pr list --repo "$GITHUB_REPOSITORY" --head "sync/upstream" --state open --json number --jq '.[0].number // empty')"
-          if [ -n "$sync_pr_number" ] && git show-ref --verify --quiet refs/remotes/origin/sync/upstream; then
-            sync_base_ref="origin/sync/upstream"
-            echo "Using the existing sync PR branch as the comparison base"
-          fi
-
-          if git cat-file -e "$sync_base_ref:.github/upstream-sync-base" 2>/dev/null; then
-            last_synced="$(git show "$sync_base_ref:.github/upstream-sync-base" | tr -d '[:space:]')"
-          elif [ -n "$workflow_checkpoint" ]; then
-            last_synced="$workflow_checkpoint"
-            echo "Using the checkpoint from the workflow ref"
-          else
-            echo "::error::Missing .github/upstream-sync-base checkpoint" >&2
-            exit 1
-          fi
-
-          current_upstream="$(git rev-parse upstream/master)"
-          if ! [[ "$last_synced" =~ ^[0-9a-fA-F]{40}$ ]]; then
-            echo "::error::Invalid upstream checkpoint: $last_synced" >&2
-            exit 1
-          fi
-          if ! git cat-file -e "$last_synced^{commit}" 2>/dev/null; then
-            echo "::error::Checkpoint commit is not available locally: $last_synced" >&2
-            exit 1
-          fi
-
-          if [ "$last_synced" = "$current_upstream" ]; then
-            UPSTREAM_COMMITS=0
-          elif ! git merge-base --is-ancestor "$last_synced" "$current_upstream"; then
-            echo "::error::Upstream history changed: checkpoint $last_synced is not an ancestor of $current_upstream" >&2
-            exit 1
-          else
-            UPSTREAM_COMMITS="$(git rev-list --count "$last_synced..$current_upstream")"
-          fi
-
-          echo "upstream-commits=$UPSTREAM_COMMITS" >> $GITHUB_OUTPUT
-          if [ "${UPSTREAM_COMMITS:-0}" -eq 0 ]; then
-            echo "no-merge-needed=true" >> $GITHUB_OUTPUT
-            echo "No new commits to merge"
-          else
-            echo "no-merge-needed=false" >> $GITHUB_OUTPUT
-            echo "Found $UPSTREAM_COMMITS candidate upstream changes; validating the effective merge"
-          fi
+        run: bash .github/scripts/sync-upstream.sh check
 
       - name: Merge upstream changes
         id: merge
         if: steps.check-merge.outputs.no-merge-needed == 'false'
-        run: |
-          set -euo pipefail
-
-          # Keep one stable branch so daily runs update the existing review PR
-          # instead of opening a new PR while the previous one is pending.
-          # This branch is bot-owned: each run rebuilds it from origin/master,
-          # so reviewers should approve or merge the PR rather than commit to
-          # sync/upstream directly.
-          branch="sync/upstream"
-          git checkout -B "$branch" origin/master
-
-          # Keep fork-local files unchanged when their differences are intentional.
-          if ! git merge upstream/master --no-ff --no-edit --no-commit; then
-            conflict_paths="$(git diff --name-only --diff-filter=U)"
-
-            if [ -z "$conflict_paths" ]; then
-              echo "Merge failed without file conflicts; aborting merge" >&2
-              git merge --abort || true
-              exit 1
-            fi
-
-            # Only workflow files and the fork's ignore rules are intentionally
-            # kept automatically. Application/test conflicts require review.
-            non_fork_conflicts=""
-            while IFS= read -r path; do
-              [ -z "$path" ] && continue
-              case "$path" in
-                .github/workflows/*|.gitignore)
-                  ;;
-                *)
-                  non_fork_conflicts+="$path"$'\n'
-                  ;;
-              esac
-            done <<< "$conflict_paths"
-
-            if [ -n "$non_fork_conflicts" ]; then
-              echo "::error::Unresolved non-workflow merge conflicts:" >&2
-              printf ' - %s\n' "$non_fork_conflicts" >&2
-              git merge --abort
-              exit 1
-            fi
-
-            echo "Resolving fork-local conflicts by keeping the current fork versions:"
-            while IFS= read -r path; do
-              [ -z "$path" ] && continue
-              case "$path" in
-                .github/workflows/*|.gitignore)
-                  echo " - $path"
-                  git checkout --ours -- "$path"
-                  git add -- "$path"
-                  ;;
-              esac
-            done <<< "$conflict_paths"
-          fi
-
-          # Drop upstream changes to workflow files before committing.
-          workflow_changes="$(git diff --name-only --cached -- '.github/workflows/*' || true)"
-          while IFS= read -r path; do
-            [ -z "$path" ] && continue
-            if git cat-file -e "HEAD:$path" 2>/dev/null; then
-              git restore --source=HEAD --staged --worktree -- "$path"
-            else
-              git rm -f -- "$path"
-            fi
-          done <<< "$workflow_changes"
-
-          current_upstream="$(git rev-parse upstream/master)"
-          printf '%s\n' "$current_upstream" > .github/upstream-sync-base
-          git add .github/upstream-sync-base
-
-          if git diff --cached --quiet; then
-            echo "No effective upstream changes remain after preserving fork-local files"
-            echo "has-changes=false" >> "$GITHUB_OUTPUT"
-            git merge --abort || true
-            exit 0
-          fi
-
-          git commit --no-edit
-          echo "has-changes=true" >> "$GITHUB_OUTPUT"
-          echo "branch=$branch" >> "$GITHUB_OUTPUT"
+        env:
+          LAST_SYNCED: ${{ steps.check-merge.outputs.last-synced }}
+          CURRENT_UPSTREAM: ${{ steps.check-merge.outputs.current-upstream }}
+          UPSTREAM_COMMITS: ${{ steps.check-merge.outputs.upstream-commits }}
+        run: bash .github/scripts/sync-upstream.sh merge
 
       - name: Push sync branch and open PR
         if: steps.check-merge.outputs.no-merge-needed == 'false' && steps.merge.outputs.has-changes == 'true'
@@ -190,6 +65,11 @@ jobs:
 
           git push --force-with-lease origin "$BRANCH"
 
+          title="chore: sync upstream/master"
+          if [ "${{ steps.check-merge.outputs.upstream-commits }}" = "0" ]; then
+            title="ci: unify git history with upstream checkpoint"
+          fi
+
           pr_url="$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$BRANCH" --state open --json url --jq '.[0].url // empty')"
           if [ -z "$pr_url" ]; then
             pr_url="$({
@@ -197,8 +77,8 @@ jobs:
                 --repo "$GITHUB_REPOSITORY" \
                 --base master \
                 --head "$BRANCH" \
-                --title "chore: sync upstream/master" \
-                --body "Automated upstream sync. The sync/upstream branch is bot-owned and regenerated from master; do not commit directly to it. Review the upstream changes and workflow-created CI runs, then use Create a merge commit (do not squash or rebase) to merge this PR manually."
+                --title "$title" \
+                --body "Automated upstream sync. The sync/upstream branch is bot-owned and regenerated from master; do not commit directly to it. Review the upstream changes and workflow-created CI runs, then use Create a merge commit (do not squash or rebase) to merge this PR manually. Squash would drop the upstream parent and force the next run to re-unify history."
             })"
           fi
 
