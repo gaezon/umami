@@ -43,9 +43,8 @@ jobs:
           rm -rf "$RUNNER_TEMP/umami-vercel-preview"
           mkdir -p "$RUNNER_TEMP/umami-vercel-preview"
           git archive --format=tar HEAD | tar -x -C "$RUNNER_TEMP/umami-vercel-preview"
-          # Vercel CLI omits .gitignore; keep Biome-readable ignore files in the upload.
-          cp .gitignore "$RUNNER_TEMP/umami-vercel-preview/.ignore"
           cp .gitignore "$RUNNER_TEMP/umami-vercel-preview/.biomeignore"
+          sed -i 's/"useIgnoreFile": true/"useIgnoreFile": false/' "$RUNNER_TEMP/umami-vercel-preview/biome.json"
 
       - name: Deploy Preview
         id: vercel-deploy

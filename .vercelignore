@@ -1,6 +1,0 @@
-# Vercel CLI always excludes .gitignore. Re-include Biome ignore files so
-# `biome format` during `pnpm run build` can resolve vcs.useIgnoreFile.
-# https://vercel.com/docs/deployments/build-features#ignored-files-and-folders
-!.gitignore
-!.ignore
-!.biomeignore
