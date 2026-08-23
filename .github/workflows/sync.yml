@@ -2,8 +2,8 @@ name: Sync upstream
 
 on:
   schedule:
-    - cron: '17 4 * * *' # Runs every day at 4:17 AM UTC.
-  workflow_dispatch: # Allows you to run this workflow manually from the Actions tab
+    - cron: '17 4 * * *' # Check daily for a new stable upstream release.
+  workflow_dispatch:
 
 concurrency:
   group: sync-fork
@@ -16,12 +16,11 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
+      issues: write
     steps:
       - name: Checkout
         uses: actions/checkout@v6
         with:
-          # Set fetch-depth to 0 to fetch all history for all branches and tags.
-          # This is necessary for merging histories.
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -35,56 +34,62 @@ jobs:
           git remote add upstream https://github.com/umami-software/umami.git || true
           git remote set-url upstream https://github.com/umami-software/umami.git
 
-      - name: Fetch upstream changes
+      - name: Fetch upstream releases
         run: |
-          git fetch upstream
+          git fetch upstream --tags
           git fetch origin
 
-      - name: Check if merge is needed
+      - name: Check for a new stable release
         id: check-merge
         env:
           GH_TOKEN: ${{ github.token }}
         run: bash .github/scripts/sync-upstream.sh check
 
-      - name: Merge upstream changes
+      - name: Merge the release
         id: merge
         if: steps.check-merge.outputs.no-merge-needed == 'false'
         env:
           LAST_SYNCED: ${{ steps.check-merge.outputs.last-synced }}
-          CURRENT_UPSTREAM: ${{ steps.check-merge.outputs.current-upstream }}
+          CURRENT_UPSTREAM: ${{ steps.check-merge.outputs.release-sha }}
+          RELEASE_TAG: ${{ steps.check-merge.outputs.release-tag }}
           UPSTREAM_COMMITS: ${{ steps.check-merge.outputs.upstream-commits }}
         run: bash .github/scripts/sync-upstream.sh merge
 
-      - name: Push sync branch and open PR
+      - name: Open an issue when the upgrade needs a human
+        id: notify
+        if: steps.merge.outputs.needs-manual == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ steps.check-merge.outputs.release-tag }}
+          CONFLICTS: ${{ steps.merge.outputs.conflicts }}
+        run: bash .github/scripts/sync-upstream.sh notify
+
+      - name: Fail once so the conflict is visible
+        if: steps.merge.outputs.needs-manual == 'true' && steps.notify.outputs.already-reported == 'false'
+        run: |
+          echo "::error::Upstream ${{ steps.check-merge.outputs.release-tag }} needs a manual upgrade. See the issue opened by this job."
+          exit 1
+
+      - name: Push branch, open PR, and auto-merge if checks pass
         if: steps.check-merge.outputs.no-merge-needed == 'false' && steps.merge.outputs.has-changes == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           BRANCH: ${{ steps.merge.outputs.branch }}
+          RELEASE_TAG: ${{ steps.check-merge.outputs.release-tag }}
         run: |
           set -euo pipefail
 
           git push --force-with-lease origin "$BRANCH"
 
-          title="chore: sync upstream/master"
-          if [ "${{ steps.check-merge.outputs.upstream-commits }}" = "0" ]; then
-            title="ci: unify git history with upstream checkpoint"
-          fi
-
           pr_url="$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$BRANCH" --state open --json url --jq '.[0].url // empty')"
           if [ -z "$pr_url" ]; then
-            pr_url="$({
-              gh pr create \
-                --repo "$GITHUB_REPOSITORY" \
-                --base master \
-                --head "$BRANCH" \
-                --title "$title" \
-                --body "Automated upstream sync. The sync/upstream branch is bot-owned and regenerated from master; do not commit directly to it. Review the upstream changes and workflow-created CI runs, then use Create a merge commit (do not squash or rebase) to merge this PR manually. Squash would drop the upstream parent and force the next run to re-unify history."
-            })"
+            pr_url="$(gh pr create \
+              --repo "$GITHUB_REPOSITORY" \
+              --base master \
+              --head "$BRANCH" \
+              --title "chore: upgrade umami to ${RELEASE_TAG}" \
+              --body "Automated upgrade to stable upstream [${RELEASE_TAG}](https://github.com/umami-software/umami/releases/tag/${RELEASE_TAG}). Bot-owned branch; CI green will auto-merge as a merge commit (do not squash).")"
           fi
 
-      - name: Report sync PR
-        if: steps.check-merge.outputs.no-merge-needed == 'false' && steps.merge.outputs.has-changes == 'true'
-        env:
-          BRANCH: ${{ steps.merge.outputs.branch }}
-        run: |
-          echo "Opened or updated sync PR for $BRANCH"
+          gh pr merge "$pr_url" --merge --auto
+          echo "Queued auto-merge for $pr_url"
