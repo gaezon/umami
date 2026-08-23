@@ -49,8 +49,9 @@ jobs:
           rm -rf "$RUNNER_TEMP/umami-vercel-production"
           mkdir -p "$RUNNER_TEMP/umami-vercel-production"
           git archive --format=tar HEAD | tar -x -C "$RUNNER_TEMP/umami-vercel-production"
+          # Vercel CLI omits .gitignore; keep Biome-readable ignore files in the upload.
+          cp .gitignore "$RUNNER_TEMP/umami-vercel-production/.ignore"
           cp .gitignore "$RUNNER_TEMP/umami-vercel-production/.biomeignore"
-          sed -i 's/"useIgnoreFile": true/"useIgnoreFile": false/' "$RUNNER_TEMP/umami-vercel-production/biome.json"
 
       - name: Deploy Production
         run: |
