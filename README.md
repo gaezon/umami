@@ -65,6 +65,8 @@ Optional: set `API_URL` to change the base URL used by internal UI API calls. Re
 
 Optional: set `TWO_FACTOR_ENCRYPTION_KEY` to a 64-character hex string to enable two-factor authentication. Generate one with `openssl rand -hex 32`. Two-factor authentication is unavailable until this key is set.
 
+MCP is disabled by default. Set `MCP_ENABLED=1` to enable the `/mcp` endpoint, then authenticate with an API key generated under Settings → API keys.
+
 Fork-specific variables are documented in [STEALTH_ACCESS.md](./STEALTH_ACCESS.md) and [PUBLIC_ARTICLE_VIEWS.md](./PUBLIC_ARTICLE_VIEWS.md).
 
 ### Build and start
