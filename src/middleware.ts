@@ -76,6 +76,12 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // MCP performs its own Bearer API-key authentication in the route handler.
+  // Let MCP clients reach that handler without the browser-only stealth cookie.
+  if (pathname === '/mcp') {
+    return NextResponse.next();
+  }
+
   // =================================================================
   // 2. 身份验证策略：保护管理面板、登录接口与配置路径
   // =================================================================
