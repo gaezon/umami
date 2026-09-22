@@ -49,3 +49,16 @@ describe('stealth middleware public article views allowlist', () => {
     expect(response.headers.get('Cache-Control')).toBe('no-store, max-age=0');
   });
 });
+
+describe('stealth middleware MCP allowlist', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  test('lets the MCP route perform its own bearer authentication', async () => {
+    vi.stubEnv('ACCESS_TOKEN', 'private-access-token');
+    const response = await middleware(new NextRequest('https://analytics.example.com/mcp'));
+
+    expect(response.headers.get('x-middleware-next')).toBe('1');
+  });
+});
