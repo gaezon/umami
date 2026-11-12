@@ -36,7 +36,7 @@ The original software is copyright Umami Software, Inc. and its [contributors](h
 
 ### Requirements
 
-- Node.js 18.18+
+- Node.js 20.19+ (22 LTS recommended)
 - PostgreSQL 12.14+
 
 ### Get this fork and install packages
@@ -59,7 +59,10 @@ Create an `.env` file:
 
 ```bash
 DATABASE_URL=postgresql://username:mypassword@localhost:5432/mydb
+APP_SECRET=random-string  # generate with: openssl rand -hex 32
 ```
+
+`APP_SECRET` is required. The app no longer falls back to `DATABASE_URL`.
 
 Optional: set `API_URL` to change the base URL used by internal UI API calls. Relative paths are served under `BASE_PATH`; absolute URLs are proxied through the local `/api` route. For example, `API_URL=/internal-api` or `API_URL=https://api.example.com/api`.
 
@@ -76,7 +79,9 @@ pnpm run build
 pnpm run start
 ```
 
-The first build creates database tables and a login user with username **admin** and password **umami**. The app listens on `http://localhost:3000` by default.
+The first build creates database tables and a login user with username **admin** and password **umami**. The first sign-in requires changing that password. The app listens on `http://localhost:3000` by default.
+
+To bind to the `HOSTNAME` and `PORT` set in your `.env` file, start with `pnpm run start:env` instead.
 
 Official install documentation: [umami.is/docs](https://umami.is/docs/).
 
@@ -88,7 +93,7 @@ Official images do not contain this fork's patches:
 docker pull docker.umami.is/umami-software/umami:latest
 ```
 
-To run **this** tree with Compose (PostgreSQL included):
+To run **this** tree with Compose (PostgreSQL included), set `APP_SECRET` in `.env` first. Compose refuses to start without it.
 
 ```bash
 docker compose up -d

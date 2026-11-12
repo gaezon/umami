@@ -60,3 +60,6 @@ yarn-error.log*
 
 .vercel
 .env*
+
+# local PR review worktrees
+/.review-pr-*/
