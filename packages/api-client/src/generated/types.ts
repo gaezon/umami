@@ -466,26 +466,6 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
-  '/api/config': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * Get application configuration
-     * @description Returns public application settings, including deployment mode, feature availability, and tracker and resource URLs.
-     */
-    get: operations['getConfig'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
   '/api/dashboard': {
     parameters: {
       query?: never;
@@ -1437,7 +1417,10 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** Get website attribution */
+    /**
+     * Get website attribution
+     * @description Attributes conversions for a page path or custom event to referrers, paid ads, and UTM parameters using a first-click or last-click model.
+     */
     get: operations['getWebsiteAttribution'];
     put?: never;
     post?: never;
@@ -1454,7 +1437,10 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** Get website breakdown */
+    /**
+     * Get website breakdown
+     * @description Returns pageviews, visitors, visits, bounces, and total time for the website, grouped by the requested fields, over the date range.
+     */
     get: operations['getWebsiteBreakdown'];
     put?: never;
     post?: never;
@@ -1476,6 +1462,150 @@ export interface paths {
      * @description Returns the earliest and latest recorded event dates for the website.
      */
     get: operations['getWebsiteDateRange'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/websites/{websiteId}/errors': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * List error issues
+     * @description Returns a paginated list of error issues for the website, with occurrence and affected visit counts for the selected date range.
+     */
+    get: operations['getWebsiteErrors'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/websites/{websiteId}/errors/{issueId}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get an error issue
+     * @description Returns an error issue with its status, occurrence counts, and first and last seen times for the selected date range.
+     */
+    get: operations['getWebsiteErrorIssue'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    /**
+     * Update an error issue status
+     * @description Changes the status of an error issue to unresolved, resolved, or ignored. Changing the status does not discard new occurrences.
+     */
+    patch: operations['updateWebsiteErrorIssue'];
+    trace?: never;
+  };
+  '/api/websites/{websiteId}/errors/{issueId}/events': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * List error occurrences
+     * @description Returns a paginated list of occurrences for an error issue, newest first.
+     */
+    get: operations['getWebsiteErrorEvents'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/websites/{websiteId}/errors/{issueId}/events/{eventId}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get an error occurrence
+     * @description Returns a single occurrence of an error issue, including its stack trace, tags, and session details.
+     */
+    get: operations['getWebsiteErrorEvent'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/websites/{websiteId}/errors/{issueId}/values': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get error issue filter values
+     * @description Returns the distinct values and occurrence counts of an error field, such as release or browser, for one issue.
+     */
+    get: operations['getWebsiteErrorIssueValues'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/websites/{websiteId}/errors/stats': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get error stats
+     * @description Returns the total number of error occurrences, issues, and affected visits for the selected date range, with a daily trend in UTC.
+     */
+    get: operations['getWebsiteErrorStats'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/websites/{websiteId}/errors/values': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get error filter values
+     * @description Returns the distinct values and occurrence counts of an error field, such as release or browser, across all issues.
+     */
+    get: operations['getWebsiteErrorValues'];
     put?: never;
     post?: never;
     delete?: never;
@@ -1831,10 +1961,16 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** Get website funnels */
+    /**
+     * Get website funnels
+     * @description Returns a paginated list of the saved funnels for the website, optionally filtered by search text.
+     */
     get: operations['getWebsiteFunnels'];
     put?: never;
-    /** Create website funnel */
+    /**
+     * Create a website funnel
+     * @description Saves a named funnel for the website with an optional description, its ordered steps, and the conversion window.
+     */
     post: operations['createWebsiteFunnel'];
     delete?: never;
     options?: never;
@@ -1849,12 +1985,21 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** Get website funnel */
+    /**
+     * Get a website funnel
+     * @description Returns a saved funnel for the website, including its name, description, steps, and conversion window.
+     */
     get: operations['getWebsiteFunnel'];
     put?: never;
-    /** Update website funnel */
+    /**
+     * Update a website funnel
+     * @description Updates the name, description, steps, or conversion window of a saved funnel for the website.
+     */
     post: operations['updateWebsiteFunnel'];
-    /** Delete website funnel */
+    /**
+     * Delete a website funnel
+     * @description Deletes the specified saved funnel from the website after checking the caller's permissions.
+     */
     delete: operations['deleteWebsiteFunnel'];
     options?: never;
     head?: never;
@@ -1868,7 +2013,10 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** Get website saved funnel stats */
+    /**
+     * Get website saved funnel stats
+     * @description Returns visitor counts and drop-off for each step of a saved funnel over the selected date range, with optional filters.
+     */
     get: operations['getWebsiteSavedFunnelStats'];
     put?: never;
     post?: never;
@@ -1885,7 +2033,10 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** Get website funnel stats */
+    /**
+     * Get website funnel stats
+     * @description Returns visitor counts and drop-off for each step of an ad-hoc funnel, given its steps and conversion window, over the date range.
+     */
     get: operations['getWebsiteFunnelStats'];
     put?: never;
     post?: never;
@@ -1902,10 +2053,16 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** Get website goals */
+    /**
+     * Get website goals
+     * @description Returns a paginated list of the saved goals for the website, optionally filtered by search text.
+     */
     get: operations['getWebsiteGoals'];
     put?: never;
-    /** Create website goal */
+    /**
+     * Create a website goal
+     * @description Saves a named goal for the website with an optional description and the goal type and value to track.
+     */
     post: operations['createWebsiteGoal'];
     delete?: never;
     options?: never;
@@ -1920,12 +2077,21 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** Get website goal */
+    /**
+     * Get a website goal
+     * @description Returns a saved goal for the website, including its name, description, and the type and value it tracks.
+     */
     get: operations['getWebsiteGoal'];
     put?: never;
-    /** Update website goal */
+    /**
+     * Update a website goal
+     * @description Updates the name, description, or the type and value tracked by a saved goal for the website.
+     */
     post: operations['updateWebsiteGoal'];
-    /** Delete website goal */
+    /**
+     * Delete a website goal
+     * @description Deletes the specified saved goal from the website after checking the caller's permissions.
+     */
     delete: operations['deleteWebsiteGoal'];
     options?: never;
     head?: never;
@@ -1939,7 +2105,10 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** Get website saved goal stats */
+    /**
+     * Get website saved goal stats
+     * @description Returns the number of conversions and the total for a saved goal over the selected date range, with optional filters.
+     */
     get: operations['getWebsiteSavedGoalStats'];
     put?: never;
     post?: never;
@@ -1956,7 +2125,10 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** Get website goal stats */
+    /**
+     * Get website goal stats
+     * @description Returns the number of conversions and the total for an ad-hoc goal, given its type and value, over the selected date range.
+     */
     get: operations['getWebsiteGoalStats'];
     put?: never;
     post?: never;
@@ -1973,7 +2145,10 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** Get website heatmaps */
+    /**
+     * Get website heatmaps
+     * @description Returns click or scroll heatmap data for the website, optionally for a single page path, along with the pages that have recorded data.
+     */
     get: operations['getWebsiteHeatmaps'];
     put?: never;
     post?: never;
@@ -1990,7 +2165,10 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** Get website journeys */
+    /**
+     * Get website journeys
+     * @description Returns the most common paths visitors take through the website, between 2 and 7 steps long, with optional start and end steps.
+     */
     get: operations['getWebsiteJourneys'];
     put?: never;
     post?: never;
@@ -2067,7 +2245,10 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** Get website performance chart */
+    /**
+     * Get website performance chart
+     * @description Returns p50, p75, and p95 values over time for a Core Web Vitals metric such as LCP, INP, CLS, FCP, or TTFB.
+     */
     get: operations['getWebsitePerformanceChart'];
     put?: never;
     post?: never;
@@ -2084,7 +2265,10 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** Get website performance metrics */
+    /**
+     * Get website performance metrics
+     * @description Ranks pages, titles, devices, or browsers by a Core Web Vitals metric, with p50, p75, and p95 values and a measurement count.
+     */
     get: operations['getWebsitePerformanceMetrics'];
     put?: never;
     post?: never;
@@ -2101,7 +2285,10 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** Get website performance stats */
+    /**
+     * Get website performance stats
+     * @description Returns p50, p75, and p95 values for LCP, INP, CLS, FCP, and TTFB and the number of measurements in the date range.
+     */
     get: operations['getWebsitePerformanceStats'];
     put?: never;
     post?: never;
@@ -2242,7 +2429,10 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** Get website retention */
+    /**
+     * Get website retention
+     * @description Returns daily retention for the website: for each first-visit date, how many visitors returned on later days and the percentage.
+     */
     get: operations['getWebsiteRetention'];
     put?: never;
     post?: never;
@@ -2779,7 +2969,10 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** Get website utm metrics */
+    /**
+     * Get website UTM metrics
+     * @description Returns pageview counts grouped by a UTM parameter, such as source, medium, campaign, term, or content, for the selected date range.
+     */
     get: operations['getWebsiteUtmMetrics'];
     put?: never;
     post?: never;
@@ -3833,7 +4026,7 @@ export interface operations {
                 /** @description Whether two-factor authentication is required for this user. */
                 isRequired: boolean;
                 /** @description Reason two-factor authentication is required. */
-                requiredReason: string;
+                requiredReason: 'user' | 'team' | 'global';
               };
         };
       };
@@ -3910,6 +4103,7 @@ export interface operations {
                   id: string;
                   /** @description Whether the user has administrator privileges. */
                   isAdmin: boolean;
+                  passwordChangeRequired: boolean;
                   /** @description Permission role assigned to the user. */
                   role: string;
                   /** @description Teams associated with the user. */
@@ -5072,6 +5266,15 @@ export interface operations {
                 isNoBilling: boolean;
                 isPro: boolean;
                 unlimitedWebsites: boolean;
+              }
+            | {
+                billingStatus: string;
+                hasSubscription: boolean;
+                isBusiness: boolean;
+                isNoBilling: boolean;
+                isOwner: boolean;
+                isPro: boolean;
+                unlimitedWebsites: boolean;
               };
         };
       };
@@ -5129,6 +5332,7 @@ export interface operations {
         };
         content: {
           'application/json': {
+            passwordChangeRequired: boolean;
             /** @description Teams associated with the user. */
             teams: unknown;
           };
@@ -6134,36 +6338,6 @@ export interface operations {
            *     }
            */
           'application/json': components['schemas']['ApiError'];
-        };
-      };
-    };
-  };
-  getConfig: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description The operation completed successfully. */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': {
-            cloudMode: boolean;
-            faviconUrl: string;
-            linksUrl: string;
-            pixelsUrl: string;
-            privateMode: boolean;
-            sessionDeletionEnabled: boolean;
-            telemetryDisabled: boolean;
-            trackerScriptName: string;
-            updatesDisabled: boolean;
-          };
         };
       };
     };
@@ -7209,6 +7383,7 @@ export interface operations {
               name: string;
             };
             authType?: 'session' | 'share' | 'api-key';
+            passwordChangeRequired?: boolean;
             shareToken?: {
               /** @description ID of the board. */
               boardId?: string;
@@ -7231,6 +7406,7 @@ export interface operations {
               websiteId?: string;
               websiteIds?: string[];
             };
+            twoFactorSetupPending?: boolean;
             /** @description User associated with the resource. */
             user?: {
               /** @description Unique identifier of the resource. */
@@ -7349,7 +7525,7 @@ export interface operations {
       content: {
         'application/json': {
           /** @description Display name of the resource. */
-          name: unknown;
+          name: string;
         };
       };
     };
@@ -7531,6 +7707,7 @@ export interface operations {
             id: string;
             /** @description Permission role assigned to the user. */
             role: string;
+            token: string;
             /** @description Username of the account. */
             username: string;
           };
@@ -7572,6 +7749,24 @@ export interface operations {
           'application/json': components['schemas']['ApiError'];
         };
       };
+      /** @description Not found. */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "error": {
+           *         "code": "not-found",
+           *         "message": "Not found.",
+           *         "status": 404
+           *       }
+           *     }
+           */
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
     };
   };
   getMyTeams: {
@@ -7604,9 +7799,7 @@ export interface operations {
             /** @description Number of matching records. */
             count: number;
             /** @description Data returned by the operation. */
-            data: {
-              /** @description Code used to join the team. */
-              accessCode: string;
+            data: ({
               /**
                * Format: date-time
                * @description Date and time the record was created.
@@ -7630,7 +7823,10 @@ export interface operations {
                * @description Date and time the record was last updated.
                */
               updatedAt: string;
-            }[];
+            } & {
+              /** @description Code used to join the team. */
+              accessCode?: string;
+            })[];
             /** @description Whether the results were truncated by the maximum result limit. */
             isCapped?: boolean;
             /** @description Field to sort the results by. */
@@ -9028,58 +9224,102 @@ export interface operations {
     };
     requestBody: {
       content: {
-        'application/json': {
-          payload: {
-            /** @description Browser used by the visitor. */
-            browser?: string;
-            cls?: number;
-            /** @description Data returned by the operation. */
-            data?: {
-              [key: string]: unknown;
+        'application/json':
+          | {
+              payload: {
+                /** @default production */
+                environment?: string;
+                /**
+                 * Format: uuid
+                 * @description ID of the event.
+                 */
+                eventId: string;
+                fingerprint?: string[];
+                /** @default false */
+                handled?: boolean;
+                /** @description Unique identifier of the resource. */
+                id?: string;
+                /** @description Preferred language reported by the visitor browser. */
+                language?: string;
+                /** @description Human-readable explanation of the result. */
+                message: string;
+                /** @description Display name of the resource. */
+                name: string;
+                /** @default  */
+                release?: string;
+                salt?: string;
+                /** @description Screen resolution of the visitor device. */
+                screen?: string;
+                /** @default  */
+                stack?: string;
+                /** @default {} */
+                tags?: {
+                  [key: string]: string;
+                };
+                timestamp: number;
+                /** @description URL associated with the resource. */
+                url: string;
+                /** @constant */
+                version: 1;
+                /** Format: uuid */
+                website: string;
+              };
+              /** @constant */
+              type: 'error';
+            }
+          | {
+              payload: {
+                /** @description Browser used by the visitor. */
+                browser?: string;
+                cls?: number;
+                /** @description Data returned by the operation. */
+                data?: {
+                  [key: string]: unknown;
+                };
+                /** @description Device category used by the visitor. */
+                device?: string;
+                fcp?: number;
+                /** @description Hostname on which the activity occurred. */
+                hostname?: string;
+                /** @description Unique identifier of the resource. */
+                id?: string;
+                inp?: number;
+                ip?: string;
+                /** @description Preferred language reported by the visitor browser. */
+                language?: string;
+                lcp?: number;
+                /** Format: uuid */
+                link?: string;
+                /** @description Display name of the resource. */
+                name?: string;
+                /** @description Operating system used by the visitor. */
+                os?: string;
+                /** Format: uuid */
+                pixel?: string;
+                /** @description URL of the referring page. */
+                referrer?: string;
+                salt?: string;
+                /** @description Screen resolution of the visitor device. */
+                screen?: string;
+                /** @description Tag attached to the tracked activity. */
+                tag?: string;
+                timestamp?: number;
+                /** @description Title of the page. */
+                title?: string;
+                ttfb?: number;
+                /** @description URL associated with the resource. */
+                url?: string;
+                userAgent?: string;
+                /** Format: uuid */
+                website?: string;
+              };
+              /** @enum {string} */
+              type: 'event' | 'identify' | 'performance';
             };
-            /** @description Device category used by the visitor. */
-            device?: string;
-            fcp?: number;
-            /** @description Hostname on which the activity occurred. */
-            hostname?: string;
-            /** @description Unique identifier of the resource. */
-            id?: string;
-            inp?: number;
-            ip?: string;
-            /** @description Preferred language reported by the visitor browser. */
-            language?: string;
-            lcp?: number;
-            /** Format: uuid */
-            link?: string;
-            /** @description Display name of the resource. */
-            name?: unknown;
-            /** @description Operating system used by the visitor. */
-            os?: string;
-            /** Format: uuid */
-            pixel?: string;
-            /** @description URL of the referring page. */
-            referrer?: string;
-            /** @description Screen resolution of the visitor device. */
-            screen?: string;
-            /** @description Tag attached to the tracked activity. */
-            tag?: unknown;
-            timestamp?: number;
-            /** @description Title of the page. */
-            title?: string;
-            ttfb?: number;
-            /** @description URL associated with the resource. */
-            url?: string;
-            userAgent?: string;
-            /** Format: uuid */
-            website?: string;
-          };
-          /** @enum {string} */
-          type: 'event' | 'identify' | 'performance';
-        };
       };
     };
     responses: {
-      /** @description The operation completed successfully. */
+      /** @description Successful response. */
       200: {
         headers: {
           [name: string]: unknown;
@@ -9090,65 +9330,84 @@ export interface operations {
                 beep: string;
               }
             | {
-                cache: unknown;
+                cache: string;
                 /** @description ID of the visitor session. */
-                sessionId: unknown;
+                sessionId: string;
                 /** @description ID of the visit. */
-                visitId: unknown;
+                visitId: string;
+              }
+            | {
+                cache: string;
+                /**
+                 * Format: uuid
+                 * @description ID of the event.
+                 */
+                eventId: string;
+                /**
+                 * Format: uuid
+                 * @description ID of the error issue.
+                 */
+                issueId: string;
+                /**
+                 * @description Whether the operation succeeded.
+                 * @constant
+                 */
+                ok: true;
+              }
+            | {
+                /**
+                 * @description Whether the operation succeeded.
+                 * @constant
+                 */
+                ok: false;
+                /** @enum {string} */
+                reason: 'bot';
               };
         };
       };
-      /** @description Bad request. */
+      /** @description Invalid collection payload or session token. */
       400: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          /**
-           * @example {
-           *       "error": {
-           *         "code": "bad-request",
-           *         "message": "Bad request.",
-           *         "status": 400
-           *       }
-           *     }
-           */
           'application/json': components['schemas']['ApiError'];
         };
       };
-      /** @description Forbidden. */
+      /** @description Collection blocked. */
       403: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          /**
-           * @example {
-           *       "error": {
-           *         "code": "forbidden",
-           *         "message": "Forbidden.",
-           *         "status": 403
-           *       }
-           *     }
-           */
           'application/json': components['schemas']['ApiError'];
         };
       };
-      /** @description Server error. */
+      /** @description Error payload exceeds 48,000 bytes. */
+      413: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Website error collection quota exceeded. */
+      429: {
+        headers: {
+          'Retry-After'?: string;
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Collection failed. Retry errors with the same occurrence ID. */
       500: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          /**
-           * @example {
-           *       "error": {
-           *         "code": "server-error",
-           *         "message": "Server error.",
-           *         "status": 500
-           *       }
-           *     }
-           */
           'application/json': components['schemas']['ApiError'];
         };
       };
@@ -9263,6 +9522,24 @@ export interface operations {
            *         "code": "unauthorized",
            *         "message": "Unauthorized.",
            *         "status": 401
+           *       }
+           *     }
+           */
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Server error. */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "error": {
+           *         "code": "server-error",
+           *         "message": "Server error.",
+           *         "status": 500
            *       }
            *     }
            */
@@ -9388,6 +9665,24 @@ export interface operations {
            *         "code": "unauthorized",
            *         "message": "Unauthorized.",
            *         "status": 401
+           *       }
+           *     }
+           */
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Not found. */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "error": {
+           *         "code": "not-found",
+           *         "message": "Not found.",
+           *         "status": 404
            *       }
            *     }
            */
@@ -9525,6 +9820,24 @@ export interface operations {
           'application/json': components['schemas']['ApiError'];
         };
       };
+      /** @description Server error. */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "error": {
+           *         "code": "server-error",
+           *         "message": "Server error.",
+           *         "status": 500
+           *       }
+           *     }
+           */
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
     };
   };
   deleteShare: {
@@ -9572,6 +9885,24 @@ export interface operations {
           'application/json': components['schemas']['ApiError'];
         };
       };
+      /** @description Not found. */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "error": {
+           *         "code": "not-found",
+           *         "message": "Not found.",
+           *         "status": 404
+           *       }
+           *     }
+           */
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
     };
   };
   getTeams: {
@@ -9604,9 +9935,7 @@ export interface operations {
             /** @description Number of matching records. */
             count: number;
             /** @description Data returned by the operation. */
-            data: {
-              /** @description Code used to join the team. */
-              accessCode: string;
+            data: ({
               /**
                * Format: date-time
                * @description Date and time the record was created.
@@ -9630,7 +9959,10 @@ export interface operations {
                * @description Date and time the record was last updated.
                */
               updatedAt: string;
-            }[];
+            } & {
+              /** @description Code used to join the team. */
+              accessCode?: string;
+            })[];
             /** @description Whether the results were truncated by the maximum result limit. */
             isCapped?: boolean;
             /** @description Field to sort the results by. */
@@ -9815,33 +10147,59 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': {
-            /** @description Code used to join the team. */
-            accessCode: string;
-            /**
-             * Format: date-time
-             * @description Date and time the record was created.
-             */
-            createdAt: string;
-            /**
-             * Format: date-time
-             * @description Date and time the record was deleted, if applicable.
-             */
-            deletedAt: string;
-            /** @description Unique identifier of the resource. */
-            id: string;
-            /** @description URL of the logo image. */
-            logoUrl: string;
-            /** @description Display name of the resource. */
-            name: string;
-            /** @description Whether two-factor authentication is required. */
-            twoFactorRequired: boolean;
-            /**
-             * Format: date-time
-             * @description Date and time the record was last updated.
-             */
-            updatedAt: string;
-          };
+          'application/json':
+            | {
+                /**
+                 * Format: date-time
+                 * @description Date and time the record was created.
+                 */
+                createdAt: string;
+                /**
+                 * Format: date-time
+                 * @description Date and time the record was deleted, if applicable.
+                 */
+                deletedAt: string;
+                /** @description Unique identifier of the resource. */
+                id: string;
+                /** @description URL of the logo image. */
+                logoUrl: string;
+                /** @description Display name of the resource. */
+                name: string;
+                /** @description Whether two-factor authentication is required. */
+                twoFactorRequired: boolean;
+                /**
+                 * Format: date-time
+                 * @description Date and time the record was last updated.
+                 */
+                updatedAt: string;
+              }
+            | {
+                /** @description Code used to join the team. */
+                accessCode: string;
+                /**
+                 * Format: date-time
+                 * @description Date and time the record was created.
+                 */
+                createdAt: string;
+                /**
+                 * Format: date-time
+                 * @description Date and time the record was deleted, if applicable.
+                 */
+                deletedAt: string;
+                /** @description Unique identifier of the resource. */
+                id: string;
+                /** @description URL of the logo image. */
+                logoUrl: string;
+                /** @description Display name of the resource. */
+                name: string;
+                /** @description Whether two-factor authentication is required. */
+                twoFactorRequired: boolean;
+                /**
+                 * Format: date-time
+                 * @description Date and time the record was last updated.
+                 */
+                updatedAt: string;
+              };
         };
       };
       /** @description Unauthorized. */
@@ -11805,9 +12163,7 @@ export interface operations {
             /** @description Number of matching records. */
             count: number;
             /** @description Data returned by the operation. */
-            data: {
-              /** @description Code used to join the team. */
-              accessCode: string;
+            data: ({
               /**
                * Format: date-time
                * @description Date and time the record was created.
@@ -11831,7 +12187,10 @@ export interface operations {
                * @description Date and time the record was last updated.
                */
               updatedAt: string;
-            }[];
+            } & {
+              /** @description Code used to join the team. */
+              accessCode?: string;
+            })[];
             /** @description Whether the results were truncated by the maximum result limit. */
             isCapped?: boolean;
             /** @description Field to sort the results by. */
@@ -12061,7 +12420,7 @@ export interface operations {
   listWebsites: {
     parameters: {
       query?: {
-        /** @description When present, include websites accessible through owned or managed teams. */
+        /** @description When present, include websites accessible through team membership. */
         includeTeams?: string;
         /** @description Maximum number of results to include. */
         maxResults?: number;
@@ -12404,6 +12763,22 @@ export interface operations {
         page?: number;
         /** @description Number of results per page. */
         pageSize?: number;
+        /** @description Relative date range, for example 7d or 30day, used instead of an explicit startAt/endAt range. */
+        period?:
+          | 'today'
+          | '24h'
+          | '7d'
+          | '30d'
+          | '0day'
+          | '24hour'
+          | '0week'
+          | '7day'
+          | '0month'
+          | '30day'
+          | '90day'
+          | '0year'
+          | '6month'
+          | '12month';
         /** @description Search text used to filter results. */
         search?: string;
         /** @description Start of the date range as a Unix timestamp in milliseconds. */
@@ -13251,9 +13626,728 @@ export interface operations {
       };
     };
   };
-  getEventData: {
+  getWebsiteErrors: {
     parameters: {
       query: {
+        /** @description Browser used by the visitor. */
+        browser?: string;
+        /** @description End of the date range as a Unix timestamp in milliseconds. */
+        endAt: number;
+        /** @description Filter by environment, as set with `data-environment` or `captureException`. */
+        environment?: string;
+        /** @description Page number, starting at 1. */
+        page?: number;
+        /** @description Number of results per page. */
+        pageSize?: number;
+        /** @description Filter by release, as set with `data-release` or `captureException`. */
+        release?: string;
+        /** @description Search text used to filter results. */
+        search?: string;
+        /** @description Start of the date range as a Unix timestamp in milliseconds. */
+        startAt: number;
+        /** @description Filter by issue status: `unresolved`, `resolved`, or `ignored`. */
+        status?: 'unresolved' | 'resolved' | 'ignored';
+        /** @description Filter by the page path on which the error occurred. */
+        urlPath?: string;
+      };
+      header?: never;
+      path: {
+        /** @description ID of the website. */
+        websiteId: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful response. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            /** @description Number of matching records. */
+            count: number;
+            /** @description Data returned by the operation. */
+            data: {
+              /** @description Date and time the record was created. */
+              createdAt: string;
+              fingerprint: string;
+              firstSeen: string | null;
+              groupingVersion: number;
+              /**
+               * Format: uuid
+               * @description Unique identifier of the resource.
+               */
+              id: string;
+              lastSeen: string | null;
+              occurrences: number;
+              resolvedAt: string | null;
+              /** @enum {string} */
+              status: 'unresolved' | 'resolved' | 'ignored';
+              /** @description Title of the page. */
+              title: string;
+              /** @description Visit counts for the selected period. */
+              visits: number;
+              /**
+               * Format: uuid
+               * @description ID of the website.
+               */
+              websiteId: string;
+            }[];
+            /** @description Page number, starting at 1. */
+            page: number;
+            /** @description Number of results per page. */
+            pageSize: number;
+          };
+        };
+      };
+      /** @description Invalid request. */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Authenticated website access required. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Website, issue, or occurrence not found. */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+    };
+  };
+  getWebsiteErrorIssue: {
+    parameters: {
+      query: {
+        /** @description Browser used by the visitor. */
+        browser?: string;
+        /** @description End of the date range as a Unix timestamp in milliseconds. */
+        endAt: number;
+        /** @description Filter by environment, as set with `data-environment` or `captureException`. */
+        environment?: string;
+        /** @description Page number, starting at 1. */
+        page?: number;
+        /** @description Number of results per page. */
+        pageSize?: number;
+        /** @description Filter by release, as set with `data-release` or `captureException`. */
+        release?: string;
+        /** @description Search text used to filter results. */
+        search?: string;
+        /** @description Start of the date range as a Unix timestamp in milliseconds. */
+        startAt: number;
+        /** @description Filter by issue status: `unresolved`, `resolved`, or `ignored`. */
+        status?: 'unresolved' | 'resolved' | 'ignored';
+        /** @description Filter by the page path on which the error occurred. */
+        urlPath?: string;
+      };
+      header?: never;
+      path: {
+        /** @description ID of the error issue. */
+        issueId: string;
+        /** @description ID of the website. */
+        websiteId: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful response. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            canUpdate: boolean;
+            /** @description Date and time the record was created. */
+            createdAt: string;
+            fingerprint: string;
+            firstSeen: string | null;
+            groupingVersion: number;
+            /**
+             * Format: uuid
+             * @description Unique identifier of the resource.
+             */
+            id: string;
+            issues: number;
+            lastSeen: string | null;
+            occurrences: number;
+            resolvedAt: string | null;
+            series: {
+              date: string;
+              occurrences: number;
+            }[];
+            /** @enum {string} */
+            status: 'unresolved' | 'resolved' | 'ignored';
+            /** @description Title of the page. */
+            title: string;
+            /** @description Visit counts for the selected period. */
+            visits: number;
+            /**
+             * Format: uuid
+             * @description ID of the website.
+             */
+            websiteId: string;
+          };
+        };
+      };
+      /** @description Invalid request. */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Authenticated website access required. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Website, issue, or occurrence not found. */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+    };
+  };
+  updateWebsiteErrorIssue: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description ID of the error issue. */
+        issueId: string;
+        /** @description ID of the website. */
+        websiteId: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': {
+          /**
+           * @description New status of the issue.
+           * @enum {string}
+           */
+          status: 'unresolved' | 'resolved' | 'ignored';
+        };
+      };
+    };
+    responses: {
+      /** @description Successful response. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['Ok'];
+        };
+      };
+      /** @description Invalid request. */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Authenticated website access required. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Website, issue, or occurrence not found. */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+    };
+  };
+  getWebsiteErrorEvents: {
+    parameters: {
+      query: {
+        /** @description Browser used by the visitor. */
+        browser?: string;
+        /** @description End of the date range as a Unix timestamp in milliseconds. */
+        endAt: number;
+        /** @description Filter by environment, as set with `data-environment` or `captureException`. */
+        environment?: string;
+        /** @description Page number, starting at 1. */
+        page?: number;
+        /** @description Number of results per page. */
+        pageSize?: number;
+        /** @description Filter by release, as set with `data-release` or `captureException`. */
+        release?: string;
+        /** @description Search text used to filter results. */
+        search?: string;
+        /** @description Start of the date range as a Unix timestamp in milliseconds. */
+        startAt: number;
+        /** @description Filter by issue status: `unresolved`, `resolved`, or `ignored`. */
+        status?: 'unresolved' | 'resolved' | 'ignored';
+        /** @description Filter by the page path on which the error occurred. */
+        urlPath?: string;
+      };
+      header?: never;
+      path: {
+        /** @description ID of the error issue. */
+        issueId: string;
+        /** @description ID of the website. */
+        websiteId: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful response. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            /** @description Number of matching records. */
+            count: number;
+            /** @description Data returned by the operation. */
+            data: {
+              /** @description Browser used by the visitor. */
+              browser: string;
+              /** @description Date and time the record was created. */
+              createdAt: string;
+              /** @description Device category used by the visitor. */
+              device: string;
+              environment: string;
+              handled: boolean;
+              /**
+               * Format: uuid
+               * @description Unique identifier of the resource.
+               */
+              id: string;
+              /** @description Human-readable explanation of the result. */
+              message: string;
+              /** @description Display name of the resource. */
+              name: string;
+              /** @description Operating system used by the visitor. */
+              os: string;
+              release: string;
+              /**
+               * Format: uuid
+               * @description ID of the visitor session.
+               */
+              sessionId: string;
+              /** @description Path portion of the page URL. */
+              urlPath: string;
+              /**
+               * Format: uuid
+               * @description ID of the visit.
+               */
+              visitId: string;
+            }[];
+            /** @description Page number, starting at 1. */
+            page: number;
+            /** @description Number of results per page. */
+            pageSize: number;
+          };
+        };
+      };
+      /** @description Invalid request. */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Authenticated website access required. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Website, issue, or occurrence not found. */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+    };
+  };
+  getWebsiteErrorEvent: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description ID of the event. */
+        eventId: string;
+        /** @description ID of the error issue. */
+        issueId: string;
+        /** @description ID of the website. */
+        websiteId: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful response. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            /** @description Browser used by the visitor. */
+            browser: string;
+            /** @description Date and time the record was created. */
+            createdAt: string;
+            /** @description Device category used by the visitor. */
+            device: string;
+            environment: string;
+            frames: {
+              column: number;
+              filename: string;
+              function: string;
+              line: number;
+            }[];
+            handled: boolean;
+            /**
+             * Format: uuid
+             * @description Unique identifier of the resource.
+             */
+            id: string;
+            /** @description Human-readable explanation of the result. */
+            message: string;
+            /** @description Display name of the resource. */
+            name: string;
+            /** @description Operating system used by the visitor. */
+            os: string;
+            release: string;
+            /** @description ID of the session replay. */
+            replayId: string | null;
+            /**
+             * Format: uuid
+             * @description ID of the visitor session.
+             */
+            sessionId: string;
+            stack: string;
+            tags: {
+              [key: string]: string;
+            };
+            /** @description Path portion of the page URL. */
+            urlPath: string;
+            /**
+             * Format: uuid
+             * @description ID of the visit.
+             */
+            visitId: string;
+          };
+        };
+      };
+      /** @description Invalid request. */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Authenticated website access required. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Website, issue, or occurrence not found. */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+    };
+  };
+  getWebsiteErrorIssueValues: {
+    parameters: {
+      query: {
+        /** @description Browser used by the visitor. */
+        browser?: string;
+        /** @description End of the date range as a Unix timestamp in milliseconds. */
+        endAt: number;
+        /** @description Filter by environment, as set with `data-environment` or `captureException`. */
+        environment?: string;
+        /** @description Filter by release, as set with `data-release` or `captureException`. */
+        release?: string;
+        /** @description Search text used to filter results. */
+        search?: string;
+        /** @description Start of the date range as a Unix timestamp in milliseconds. */
+        startAt: number;
+        /** @description Filter by issue status: `unresolved`, `resolved`, or `ignored`. */
+        status?: 'unresolved' | 'resolved' | 'ignored';
+        /** @description Error field to return values for: `release`, `environment`, `browser`, or `urlPath`. */
+        type: 'release' | 'environment' | 'browser' | 'urlPath';
+        /** @description Filter by the page path on which the error occurred. */
+        urlPath?: string;
+        /** @description Search text used to filter the returned values. */
+        value?: string;
+      };
+      header?: never;
+      path: {
+        /** @description ID of the error issue. */
+        issueId: string;
+        /** @description ID of the website. */
+        websiteId: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful response. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            /** @description Number of matching records. */
+            count: number;
+            value: string;
+          }[];
+        };
+      };
+      /** @description Invalid request. */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Authenticated website access required. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Website, issue, or occurrence not found. */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+    };
+  };
+  getWebsiteErrorStats: {
+    parameters: {
+      query: {
+        /** @description Browser used by the visitor. */
+        browser?: string;
+        /** @description End of the date range as a Unix timestamp in milliseconds. */
+        endAt: number;
+        /** @description Filter by environment, as set with `data-environment` or `captureException`. */
+        environment?: string;
+        /** @description Page number, starting at 1. */
+        page?: number;
+        /** @description Number of results per page. */
+        pageSize?: number;
+        /** @description Filter by release, as set with `data-release` or `captureException`. */
+        release?: string;
+        /** @description Search text used to filter results. */
+        search?: string;
+        /** @description Start of the date range as a Unix timestamp in milliseconds. */
+        startAt: number;
+        /** @description Filter by issue status: `unresolved`, `resolved`, or `ignored`. */
+        status?: 'unresolved' | 'resolved' | 'ignored';
+        /** @description Filter by the page path on which the error occurred. */
+        urlPath?: string;
+      };
+      header?: never;
+      path: {
+        /** @description ID of the website. */
+        websiteId: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful response. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            firstSeen: string | null;
+            issues: number;
+            lastSeen: string | null;
+            occurrences: number;
+            series: {
+              date: string;
+              occurrences: number;
+            }[];
+            /** @description Visit counts for the selected period. */
+            visits: number;
+          };
+        };
+      };
+      /** @description Invalid request. */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Authenticated website access required. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Website, issue, or occurrence not found. */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+    };
+  };
+  getWebsiteErrorValues: {
+    parameters: {
+      query: {
+        /** @description Browser used by the visitor. */
+        browser?: string;
+        /** @description End of the date range as a Unix timestamp in milliseconds. */
+        endAt: number;
+        /** @description Filter by environment, as set with `data-environment` or `captureException`. */
+        environment?: string;
+        /** @description Filter by release, as set with `data-release` or `captureException`. */
+        release?: string;
+        /** @description Search text used to filter results. */
+        search?: string;
+        /** @description Start of the date range as a Unix timestamp in milliseconds. */
+        startAt: number;
+        /** @description Filter by issue status: `unresolved`, `resolved`, or `ignored`. */
+        status?: 'unresolved' | 'resolved' | 'ignored';
+        /** @description Error field to return values for: `release`, `environment`, `browser`, or `urlPath`. */
+        type: 'release' | 'environment' | 'browser' | 'urlPath';
+        /** @description Filter by the page path on which the error occurred. */
+        urlPath?: string;
+        /** @description Search text used to filter the returned values. */
+        value?: string;
+      };
+      header?: never;
+      path: {
+        /** @description ID of the website. */
+        websiteId: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful response. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            /** @description Number of matching records. */
+            count: number;
+            value: string;
+          }[];
+        };
+      };
+      /** @description Invalid request. */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Authenticated website access required. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Website, issue, or occurrence not found. */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+    };
+  };
+  getEventData: {
+    parameters: {
+      query?: {
         /** @description Browser used by the visitor. */
         browser?: string;
         /** @description City of the visitor. */
@@ -13267,7 +14361,7 @@ export interface operations {
         /** @description Custom identifier assigned to the visitor. */
         distinctId?: string;
         /** @description End of the date range as a Unix timestamp in milliseconds. */
-        endAt: number;
+        endAt?: number;
         /** @description Filter by custom event name. */
         event?: string;
         /** @description Event type: 1 for a pageview or 2 for a custom event. */
@@ -13290,6 +14384,22 @@ export interface operations {
         pageSize?: number;
         /** @description Filter by page URL path. */
         path?: string;
+        /** @description Relative date range, for example 7d or 30day, used instead of an explicit startAt/endAt range. */
+        period?:
+          | 'today'
+          | '24h'
+          | '7d'
+          | '30d'
+          | '0day'
+          | '24hour'
+          | '0week'
+          | '7day'
+          | '0month'
+          | '30day'
+          | '90day'
+          | '0year'
+          | '6month'
+          | '12month';
         /** @description Filter by page URL query string. */
         query?: string;
         /** @description Filter by referring URL. */
@@ -13299,7 +14409,7 @@ export interface operations {
         /** @description ID of a saved segment used to filter results. */
         segment?: string;
         /** @description Start of the date range as a Unix timestamp in milliseconds. */
-        startAt: number;
+        startAt?: number;
         /** @description Tag attached to the tracked activity. */
         tag?: string;
         /** @description Filter by page title. */
@@ -13418,7 +14528,7 @@ export interface operations {
         /** @description Custom identifier assigned to the visitor. */
         distinctId?: string;
         /** @description End of the date range as a Unix timestamp in milliseconds. */
-        endAt: number;
+        endAt?: number;
         /** @description Filter by custom event name. */
         event?: string;
         /** @description Name of the custom event. */
@@ -13443,6 +14553,22 @@ export interface operations {
         pageSize?: number;
         /** @description Filter by page URL path. */
         path?: string;
+        /** @description Relative date range, for example 7d or 30day, used instead of an explicit startAt/endAt range. */
+        period?:
+          | 'today'
+          | '24h'
+          | '7d'
+          | '30d'
+          | '0day'
+          | '24hour'
+          | '0week'
+          | '7day'
+          | '0month'
+          | '30day'
+          | '90day'
+          | '0year'
+          | '6month'
+          | '12month';
         /** @description Filter by page URL query string. */
         query?: string;
         /** @description Filter by referring URL. */
@@ -13452,7 +14578,7 @@ export interface operations {
         /** @description ID of a saved segment used to filter results. */
         segment?: string;
         /** @description Start of the date range as a Unix timestamp in milliseconds. */
-        startAt: number;
+        startAt?: number;
         /** @description Tag attached to the tracked activity. */
         tag?: string;
         /** @description IANA time zone used to interpret dates and group results, for example America/New_York. */
@@ -13576,7 +14702,7 @@ export interface operations {
         /** @description Custom identifier assigned to the visitor. */
         distinctId?: string;
         /** @description End of the date range as a Unix timestamp in milliseconds. */
-        endAt: number;
+        endAt?: number;
         /** @description Filter by custom event name. */
         event?: string;
         /** @description Name of the custom event. */
@@ -13595,6 +14721,22 @@ export interface operations {
         os?: string;
         /** @description Filter by page URL path. */
         path?: string;
+        /** @description Relative date range, for example 7d or 30day, used instead of an explicit startAt/endAt range. */
+        period?:
+          | 'today'
+          | '24h'
+          | '7d'
+          | '30d'
+          | '0day'
+          | '24hour'
+          | '0week'
+          | '7day'
+          | '0month'
+          | '30day'
+          | '90day'
+          | '0year'
+          | '6month'
+          | '12month';
         /** @description Name of the custom event or session property. */
         propertyName: string;
         /** @description Filter by page URL query string. */
@@ -13606,7 +14748,7 @@ export interface operations {
         /** @description ID of a saved segment used to filter results. */
         segment?: string;
         /** @description Start of the date range as a Unix timestamp in milliseconds. */
-        startAt: number;
+        startAt?: number;
         /** @description Tag attached to the tracked activity. */
         tag?: string;
         /** @description IANA time zone used to interpret dates and group results, for example America/New_York. */
@@ -13702,7 +14844,7 @@ export interface operations {
         /** @description Custom identifier assigned to the visitor. */
         distinctId?: string;
         /** @description End of the date range as a Unix timestamp in milliseconds. */
-        endAt: number;
+        endAt?: number;
         /** @description Filter by custom event name. */
         event?: string;
         /** @description Name of the custom event. */
@@ -13721,6 +14863,22 @@ export interface operations {
         os?: string;
         /** @description Filter by page URL path. */
         path?: string;
+        /** @description Relative date range, for example 7d or 30day, used instead of an explicit startAt/endAt range. */
+        period?:
+          | 'today'
+          | '24h'
+          | '7d'
+          | '30d'
+          | '0day'
+          | '24hour'
+          | '0week'
+          | '7day'
+          | '0month'
+          | '30day'
+          | '90day'
+          | '0year'
+          | '6month'
+          | '12month';
         /** @description Name of the custom event or session property. */
         propertyName: string;
         /** @description Filter by page URL query string. */
@@ -13732,7 +14890,7 @@ export interface operations {
         /** @description ID of a saved segment used to filter results. */
         segment?: string;
         /** @description Start of the date range as a Unix timestamp in milliseconds. */
-        startAt: number;
+        startAt?: number;
         /** @description Tag attached to the tracked activity. */
         tag?: string;
         /** @description IANA time zone used to interpret dates and group results, for example America/New_York. */
@@ -13825,7 +14983,7 @@ export interface operations {
         /** @description Custom identifier assigned to the visitor. */
         distinctId?: string;
         /** @description End of the date range as a Unix timestamp in milliseconds. */
-        endAt: number;
+        endAt?: number;
         /** @description Filter by custom event name. */
         event?: string;
         /** @description Name of the custom event. */
@@ -13846,6 +15004,22 @@ export interface operations {
         os?: string;
         /** @description Filter by page URL path. */
         path?: string;
+        /** @description Relative date range, for example 7d or 30day, used instead of an explicit startAt/endAt range. */
+        period?:
+          | 'today'
+          | '24h'
+          | '7d'
+          | '30d'
+          | '0day'
+          | '24hour'
+          | '0week'
+          | '7day'
+          | '0month'
+          | '30day'
+          | '90day'
+          | '0year'
+          | '6month'
+          | '12month';
         /** @description Name of the custom event or session property. */
         propertyName: string;
         /** @description Filter by page URL query string. */
@@ -13857,7 +15031,7 @@ export interface operations {
         /** @description ID of a saved segment used to filter results. */
         segment?: string;
         /** @description Start of the date range as a Unix timestamp in milliseconds. */
-        startAt: number;
+        startAt?: number;
         /** @description Tag attached to the tracked activity. */
         tag?: string;
         /** @description IANA time zone used to interpret dates and group results, for example America/New_York. */
@@ -13952,7 +15126,7 @@ export interface operations {
         /** @description Custom identifier assigned to the visitor. */
         distinctId?: string;
         /** @description End of the date range as a Unix timestamp in milliseconds. */
-        endAt: number;
+        endAt?: number;
         /** @description Filter by custom event name. */
         event?: string;
         /** @description Name of the custom event. */
@@ -13971,6 +15145,22 @@ export interface operations {
         os?: string;
         /** @description Filter by page URL path. */
         path?: string;
+        /** @description Relative date range, for example 7d or 30day, used instead of an explicit startAt/endAt range. */
+        period?:
+          | 'today'
+          | '24h'
+          | '7d'
+          | '30d'
+          | '0day'
+          | '24hour'
+          | '0week'
+          | '7day'
+          | '0month'
+          | '30day'
+          | '90day'
+          | '0year'
+          | '6month'
+          | '12month';
         /** @description Name of the custom event or session property. */
         propertyName: string;
         /** @description Filter by page URL query string. */
@@ -13982,7 +15172,7 @@ export interface operations {
         /** @description ID of a saved segment used to filter results. */
         segment?: string;
         /** @description Start of the date range as a Unix timestamp in milliseconds. */
-        startAt: number;
+        startAt?: number;
         /** @description Tag attached to the tracked activity. */
         tag?: string;
         /** @description Filter by page title. */
@@ -14080,7 +15270,7 @@ export interface operations {
         /** @description Custom identifier assigned to the visitor. */
         distinctId?: string;
         /** @description End of the date range as a Unix timestamp in milliseconds. */
-        endAt: number;
+        endAt?: number;
         /** @description Filter by custom event name. */
         event?: string;
         /** @description Name of the custom event. */
@@ -14099,6 +15289,22 @@ export interface operations {
         os?: string;
         /** @description Filter by page URL path. */
         path?: string;
+        /** @description Relative date range, for example 7d or 30day, used instead of an explicit startAt/endAt range. */
+        period?:
+          | 'today'
+          | '24h'
+          | '7d'
+          | '30d'
+          | '0day'
+          | '24hour'
+          | '0week'
+          | '7day'
+          | '0month'
+          | '30day'
+          | '90day'
+          | '0year'
+          | '6month'
+          | '12month';
         /** @description Name of the custom event or session property. */
         propertyName: string;
         /** @description Filter by page URL query string. */
@@ -14110,7 +15316,7 @@ export interface operations {
         /** @description ID of a saved segment used to filter results. */
         segment?: string;
         /** @description Start of the date range as a Unix timestamp in milliseconds. */
-        startAt: number;
+        startAt?: number;
         /** @description Tag attached to the tracked activity. */
         tag?: string;
         /** @description IANA time zone used to interpret dates and group results, for example America/New_York. */
@@ -14264,7 +15470,7 @@ export interface operations {
   };
   getEventDataEvents: {
     parameters: {
-      query: {
+      query?: {
         /** @description Browser used by the visitor. */
         browser?: string;
         /** @description City of the visitor. */
@@ -14278,7 +15484,7 @@ export interface operations {
         /** @description Custom identifier assigned to the visitor. */
         distinctId?: string;
         /** @description End of the date range as a Unix timestamp in milliseconds. */
-        endAt: number;
+        endAt?: number;
         /** @description Filter by custom event name. */
         event?: string;
         /** @description Event type: 1 for a pageview or 2 for a custom event. */
@@ -14295,6 +15501,22 @@ export interface operations {
         os?: string;
         /** @description Filter by page URL path. */
         path?: string;
+        /** @description Relative date range, for example 7d or 30day, used instead of an explicit startAt/endAt range. */
+        period?:
+          | 'today'
+          | '24h'
+          | '7d'
+          | '30d'
+          | '0day'
+          | '24hour'
+          | '0week'
+          | '7day'
+          | '0month'
+          | '30day'
+          | '90day'
+          | '0year'
+          | '6month'
+          | '12month';
         /** @description Filter by page URL query string. */
         query?: string;
         /** @description Filter by referring URL. */
@@ -14304,7 +15526,7 @@ export interface operations {
         /** @description ID of a saved segment used to filter results. */
         segment?: string;
         /** @description Start of the date range as a Unix timestamp in milliseconds. */
-        startAt: number;
+        startAt?: number;
         /** @description Tag attached to the tracked activity. */
         tag?: string;
         /** @description Filter by page title. */
@@ -14388,7 +15610,7 @@ export interface operations {
   };
   getEventDataFields: {
     parameters: {
-      query: {
+      query?: {
         /** @description Browser used by the visitor. */
         browser?: string;
         /** @description City of the visitor. */
@@ -14402,7 +15624,7 @@ export interface operations {
         /** @description Custom identifier assigned to the visitor. */
         distinctId?: string;
         /** @description End of the date range as a Unix timestamp in milliseconds. */
-        endAt: number;
+        endAt?: number;
         /** @description Filter by custom event name. */
         event?: string;
         /** @description Name of the custom event. */
@@ -14421,6 +15643,22 @@ export interface operations {
         os?: string;
         /** @description Filter by page URL path. */
         path?: string;
+        /** @description Relative date range, for example 7d or 30day, used instead of an explicit startAt/endAt range. */
+        period?:
+          | 'today'
+          | '24h'
+          | '7d'
+          | '30d'
+          | '0day'
+          | '24hour'
+          | '0week'
+          | '7day'
+          | '0month'
+          | '30day'
+          | '90day'
+          | '0year'
+          | '6month'
+          | '12month';
         /** @description Filter by page URL query string. */
         query?: string;
         /** @description Filter by referring URL. */
@@ -14430,7 +15668,7 @@ export interface operations {
         /** @description ID of a saved segment used to filter results. */
         segment?: string;
         /** @description Start of the date range as a Unix timestamp in milliseconds. */
-        startAt: number;
+        startAt?: number;
         /** @description Tag attached to the tracked activity. */
         tag?: string;
         /** @description Filter by page title. */
@@ -14510,7 +15748,7 @@ export interface operations {
   };
   getEventDataProperties: {
     parameters: {
-      query: {
+      query?: {
         /** @description Browser used by the visitor. */
         browser?: string;
         /** @description City of the visitor. */
@@ -14524,7 +15762,7 @@ export interface operations {
         /** @description Custom identifier assigned to the visitor. */
         distinctId?: string;
         /** @description End of the date range as a Unix timestamp in milliseconds. */
-        endAt: number;
+        endAt?: number;
         /** @description Filter by custom event name. */
         event?: string;
         /** @description Event type: 1 for a pageview or 2 for a custom event. */
@@ -14541,6 +15779,22 @@ export interface operations {
         os?: string;
         /** @description Filter by page URL path. */
         path?: string;
+        /** @description Relative date range, for example 7d or 30day, used instead of an explicit startAt/endAt range. */
+        period?:
+          | 'today'
+          | '24h'
+          | '7d'
+          | '30d'
+          | '0day'
+          | '24hour'
+          | '0week'
+          | '7day'
+          | '0month'
+          | '30day'
+          | '90day'
+          | '0year'
+          | '6month'
+          | '12month';
         /** @description Filter by page URL query string. */
         query?: string;
         /** @description Filter by referring URL. */
@@ -14550,7 +15804,7 @@ export interface operations {
         /** @description ID of a saved segment used to filter results. */
         segment?: string;
         /** @description Start of the date range as a Unix timestamp in milliseconds. */
-        startAt: number;
+        startAt?: number;
         /** @description Tag attached to the tracked activity. */
         tag?: string;
         /** @description Filter by page title. */
@@ -14632,7 +15886,7 @@ export interface operations {
   };
   getEventDataStats: {
     parameters: {
-      query: {
+      query?: {
         /** @description Browser used by the visitor. */
         browser?: string;
         /** @description City of the visitor. */
@@ -14646,7 +15900,7 @@ export interface operations {
         /** @description Custom identifier assigned to the visitor. */
         distinctId?: string;
         /** @description End of the date range as a Unix timestamp in milliseconds. */
-        endAt: number;
+        endAt?: number;
         /** @description Filter by custom event name. */
         event?: string;
         /** @description Event type: 1 for a pageview or 2 for a custom event. */
@@ -14663,6 +15917,22 @@ export interface operations {
         os?: string;
         /** @description Filter by page URL path. */
         path?: string;
+        /** @description Relative date range, for example 7d or 30day, used instead of an explicit startAt/endAt range. */
+        period?:
+          | 'today'
+          | '24h'
+          | '7d'
+          | '30d'
+          | '0day'
+          | '24hour'
+          | '0week'
+          | '7day'
+          | '0month'
+          | '30day'
+          | '90day'
+          | '0year'
+          | '6month'
+          | '12month';
         /** @description Filter by page URL query string. */
         query?: string;
         /** @description Filter by referring URL. */
@@ -14672,7 +15942,7 @@ export interface operations {
         /** @description ID of a saved segment used to filter results. */
         segment?: string;
         /** @description Start of the date range as a Unix timestamp in milliseconds. */
-        startAt: number;
+        startAt?: number;
         /** @description Tag attached to the tracked activity. */
         tag?: string;
         /** @description Filter by page title. */
@@ -14766,7 +16036,7 @@ export interface operations {
         /** @description Custom identifier assigned to the visitor. */
         distinctId?: string;
         /** @description End of the date range as a Unix timestamp in milliseconds. */
-        endAt: number;
+        endAt?: number;
         /** @description Filter by custom event name. */
         event?: string;
         /** @description Name of the custom event. */
@@ -14785,6 +16055,22 @@ export interface operations {
         os?: string;
         /** @description Filter by page URL path. */
         path?: string;
+        /** @description Relative date range, for example 7d or 30day, used instead of an explicit startAt/endAt range. */
+        period?:
+          | 'today'
+          | '24h'
+          | '7d'
+          | '30d'
+          | '0day'
+          | '24hour'
+          | '0week'
+          | '7day'
+          | '0month'
+          | '30day'
+          | '90day'
+          | '0year'
+          | '6month'
+          | '12month';
         /** @description Name of the custom event or session property. */
         propertyName: string;
         /** @description Filter by page URL query string. */
@@ -14796,7 +16082,7 @@ export interface operations {
         /** @description ID of a saved segment used to filter results. */
         segment?: string;
         /** @description Start of the date range as a Unix timestamp in milliseconds. */
-        startAt: number;
+        startAt?: number;
         /** @description Tag attached to the tracked activity. */
         tag?: string;
         /** @description Filter by page title. */
@@ -14914,6 +16200,22 @@ export interface operations {
         pageSize?: number;
         /** @description Filter by page URL path. */
         path?: string;
+        /** @description Relative date range, for example 7d or 30day, used instead of an explicit startAt/endAt range. */
+        period?:
+          | 'today'
+          | '24h'
+          | '7d'
+          | '30d'
+          | '0day'
+          | '24hour'
+          | '0week'
+          | '7day'
+          | '0month'
+          | '30day'
+          | '90day'
+          | '0year'
+          | '6month'
+          | '12month';
         /** @description Filter by page URL query string. */
         query?: string;
         /** @description Filter by referring URL. */
@@ -15019,7 +16321,7 @@ export interface operations {
         /** @description Custom identifier assigned to the visitor. */
         distinctId?: string;
         /** @description End of the date range as a Unix timestamp in milliseconds. */
-        endAt: number;
+        endAt?: number;
         /** @description Filter by custom event name. */
         event?: string;
         /** @description Event type: 1 for a pageview or 2 for a custom event. */
@@ -15038,6 +16340,22 @@ export interface operations {
         os?: string;
         /** @description Filter by page URL path. */
         path?: string;
+        /** @description Relative date range, for example 7d or 30day, used instead of an explicit startAt/endAt range. */
+        period?:
+          | 'today'
+          | '24h'
+          | '7d'
+          | '30d'
+          | '0day'
+          | '24hour'
+          | '0week'
+          | '7day'
+          | '0month'
+          | '30day'
+          | '90day'
+          | '0year'
+          | '6month'
+          | '12month';
         /** @description Filter by page URL query string. */
         query?: string;
         /** @description Filter by referring URL. */
@@ -15047,7 +16365,7 @@ export interface operations {
         /** @description ID of a saved segment used to filter results. */
         segment?: string;
         /** @description Start of the date range as a Unix timestamp in milliseconds. */
-        startAt: number;
+        startAt?: number;
         /** @description Tag attached to the tracked activity. */
         tag?: string;
         /** @description IANA time zone used to interpret dates and group results, for example America/New_York. */
@@ -16364,7 +17682,8 @@ export interface operations {
           name: string;
           /** @description Configuration parameters for the resource. */
           parameters: {
-            type: string;
+            /** @enum {string} */
+            type: 'path' | 'event';
             value: string;
           };
         };
@@ -16546,7 +17865,8 @@ export interface operations {
           name: string;
           /** @description Configuration parameters for the resource. */
           parameters: {
-            type: string;
+            /** @enum {string} */
+            type: 'path' | 'event';
             value: string;
           };
         };
@@ -16892,7 +18212,7 @@ export interface operations {
         /** @description Filter by page title. */
         title?: string;
         /** @description Type of resource or analytics dimension to return. */
-        type: string;
+        type: 'path' | 'event';
         /** @description Time interval used to group results: minute, hour, day, month, or year. */
         unit?: string;
         /** @description UTM campaign name. */
@@ -17373,6 +18693,22 @@ export interface operations {
         os?: string;
         /** @description Filter by page URL path. */
         path?: string;
+        /** @description Relative date range, for example 7d or 30day, used instead of an explicit startAt/endAt range. */
+        period?:
+          | 'today'
+          | '24h'
+          | '7d'
+          | '30d'
+          | '0day'
+          | '24hour'
+          | '0week'
+          | '7day'
+          | '0month'
+          | '30day'
+          | '90day'
+          | '0year'
+          | '6month'
+          | '12month';
         /** @description Filter by page URL query string. */
         query?: string;
         /** @description Filter by referring URL. */
@@ -17646,6 +18982,22 @@ export interface operations {
         os?: string;
         /** @description Filter by page URL path. */
         path?: string;
+        /** @description Relative date range, for example 7d or 30day, used instead of an explicit startAt/endAt range. */
+        period?:
+          | 'today'
+          | '24h'
+          | '7d'
+          | '30d'
+          | '0day'
+          | '24hour'
+          | '0week'
+          | '7day'
+          | '0month'
+          | '30day'
+          | '90day'
+          | '0year'
+          | '6month'
+          | '12month';
         /** @description Filter by page URL query string. */
         query?: string;
         /** @description Filter by referring URL. */
@@ -18344,6 +19696,7 @@ export interface operations {
               createdAt: string;
               /** @description Device category used by the visitor. */
               device: string;
+              distinctIds: string[];
               /** @description Replay duration in milliseconds. */
               duration: number;
               /** @description Date and time the recording ended. */
@@ -18512,6 +19865,7 @@ export interface operations {
                * @description Date and time the record was created.
                */
               createdAt: string;
+              distinctIds: string[];
               /** @description Unique identifier of the resource. */
               id: string;
               /** @description Display name of the resource. */
@@ -19283,6 +20637,8 @@ export interface operations {
               lastAt: string;
               /** @description Operating system used by the visitor. */
               os: string;
+              /** @description Domain of the referring page. */
+              referrerDomain: string;
               /** @description Region or subdivision of the visitor. */
               region: string;
               /** @description Screen resolution of the visitor device. */
@@ -19836,7 +21192,20 @@ export interface operations {
           name: string;
           /** @description Configuration parameters for the resource. */
           parameters: {
-            [key: string]: unknown;
+            action?: {
+              type: string;
+              value: string;
+            };
+            dateRange?: string;
+            /** @description Filters applied to the analytics data. */
+            filters?: {
+              [key: string]: unknown;
+            }[];
+            /**
+             * @description Whether records must match all filters or any filter.
+             * @enum {string}
+             */
+            match?: 'all' | 'any';
           };
           /** @enum {string} */
           type: 'segment' | 'cohort';
@@ -20030,7 +21399,7 @@ export interface operations {
         /** @description Custom identifier assigned to the visitor. */
         distinctId?: string;
         /** @description End of the date range as a Unix timestamp in milliseconds. */
-        endAt: number;
+        endAt?: number;
         /** @description Filter by custom event name. */
         event?: string;
         /** @description Event type: 1 for a pageview or 2 for a custom event. */
@@ -20053,6 +21422,22 @@ export interface operations {
         pageSize?: number;
         /** @description Filter by page URL path. */
         path?: string;
+        /** @description Relative date range, for example 7d or 30day, used instead of an explicit startAt/endAt range. */
+        period?:
+          | 'today'
+          | '24h'
+          | '7d'
+          | '30d'
+          | '0day'
+          | '24hour'
+          | '0week'
+          | '7day'
+          | '0month'
+          | '30day'
+          | '90day'
+          | '0year'
+          | '6month'
+          | '12month';
         /** @description Name of the custom event or session property. */
         propertyName: string;
         /** @description Filter by page URL query string. */
@@ -20064,7 +21449,7 @@ export interface operations {
         /** @description ID of a saved segment used to filter results. */
         segment?: string;
         /** @description Start of the date range as a Unix timestamp in milliseconds. */
-        startAt: number;
+        startAt?: number;
         /** @description Tag attached to the tracked activity. */
         tag?: string;
         /** @description IANA time zone used to interpret dates and group results, for example America/New_York. */
@@ -20184,7 +21569,7 @@ export interface operations {
         /** @description Custom identifier assigned to the visitor. */
         distinctId?: string;
         /** @description End of the date range as a Unix timestamp in milliseconds. */
-        endAt: number;
+        endAt?: number;
         /** @description Filter by custom event name. */
         event?: string;
         /** @description Event type: 1 for a pageview or 2 for a custom event. */
@@ -20201,6 +21586,22 @@ export interface operations {
         os?: string;
         /** @description Filter by page URL path. */
         path?: string;
+        /** @description Relative date range, for example 7d or 30day, used instead of an explicit startAt/endAt range. */
+        period?:
+          | 'today'
+          | '24h'
+          | '7d'
+          | '30d'
+          | '0day'
+          | '24hour'
+          | '0week'
+          | '7day'
+          | '0month'
+          | '30day'
+          | '90day'
+          | '0year'
+          | '6month'
+          | '12month';
         /** @description Name of the custom event or session property. */
         propertyName: string;
         /** @description Filter by page URL query string. */
@@ -20212,7 +21613,7 @@ export interface operations {
         /** @description ID of a saved segment used to filter results. */
         segment?: string;
         /** @description Start of the date range as a Unix timestamp in milliseconds. */
-        startAt: number;
+        startAt?: number;
         /** @description Tag attached to the tracked activity. */
         tag?: string;
         /** @description IANA time zone used to interpret dates and group results, for example America/New_York. */
@@ -20308,7 +21709,7 @@ export interface operations {
         /** @description Custom identifier assigned to the visitor. */
         distinctId?: string;
         /** @description End of the date range as a Unix timestamp in milliseconds. */
-        endAt: number;
+        endAt?: number;
         /** @description Filter by custom event name. */
         event?: string;
         /** @description Event type: 1 for a pageview or 2 for a custom event. */
@@ -20325,6 +21726,22 @@ export interface operations {
         os?: string;
         /** @description Filter by page URL path. */
         path?: string;
+        /** @description Relative date range, for example 7d or 30day, used instead of an explicit startAt/endAt range. */
+        period?:
+          | 'today'
+          | '24h'
+          | '7d'
+          | '30d'
+          | '0day'
+          | '24hour'
+          | '0week'
+          | '7day'
+          | '0month'
+          | '30day'
+          | '90day'
+          | '0year'
+          | '6month'
+          | '12month';
         /** @description Name of the custom event or session property. */
         propertyName: string;
         /** @description Filter by page URL query string. */
@@ -20336,7 +21753,7 @@ export interface operations {
         /** @description ID of a saved segment used to filter results. */
         segment?: string;
         /** @description Start of the date range as a Unix timestamp in milliseconds. */
-        startAt: number;
+        startAt?: number;
         /** @description Tag attached to the tracked activity. */
         tag?: string;
         /** @description IANA time zone used to interpret dates and group results, for example America/New_York. */
@@ -20429,7 +21846,7 @@ export interface operations {
         /** @description Custom identifier assigned to the visitor. */
         distinctId?: string;
         /** @description End of the date range as a Unix timestamp in milliseconds. */
-        endAt: number;
+        endAt?: number;
         /** @description Filter by custom event name. */
         event?: string;
         /** @description Event type: 1 for a pageview or 2 for a custom event. */
@@ -20448,6 +21865,22 @@ export interface operations {
         os?: string;
         /** @description Filter by page URL path. */
         path?: string;
+        /** @description Relative date range, for example 7d or 30day, used instead of an explicit startAt/endAt range. */
+        period?:
+          | 'today'
+          | '24h'
+          | '7d'
+          | '30d'
+          | '0day'
+          | '24hour'
+          | '0week'
+          | '7day'
+          | '0month'
+          | '30day'
+          | '90day'
+          | '0year'
+          | '6month'
+          | '12month';
         /** @description Name of the custom event or session property. */
         propertyName: string;
         /** @description Filter by page URL query string. */
@@ -20459,7 +21892,7 @@ export interface operations {
         /** @description ID of a saved segment used to filter results. */
         segment?: string;
         /** @description Start of the date range as a Unix timestamp in milliseconds. */
-        startAt: number;
+        startAt?: number;
         /** @description Tag attached to the tracked activity. */
         tag?: string;
         /** @description IANA time zone used to interpret dates and group results, for example America/New_York. */
@@ -20554,7 +21987,7 @@ export interface operations {
         /** @description Custom identifier assigned to the visitor. */
         distinctId?: string;
         /** @description End of the date range as a Unix timestamp in milliseconds. */
-        endAt: number;
+        endAt?: number;
         /** @description Filter by custom event name. */
         event?: string;
         /** @description Event type: 1 for a pageview or 2 for a custom event. */
@@ -20571,6 +22004,22 @@ export interface operations {
         os?: string;
         /** @description Filter by page URL path. */
         path?: string;
+        /** @description Relative date range, for example 7d or 30day, used instead of an explicit startAt/endAt range. */
+        period?:
+          | 'today'
+          | '24h'
+          | '7d'
+          | '30d'
+          | '0day'
+          | '24hour'
+          | '0week'
+          | '7day'
+          | '0month'
+          | '30day'
+          | '90day'
+          | '0year'
+          | '6month'
+          | '12month';
         /** @description Name of the custom event or session property. */
         propertyName: string;
         /** @description Filter by page URL query string. */
@@ -20582,7 +22031,7 @@ export interface operations {
         /** @description ID of a saved segment used to filter results. */
         segment?: string;
         /** @description Start of the date range as a Unix timestamp in milliseconds. */
-        startAt: number;
+        startAt?: number;
         /** @description Tag attached to the tracked activity. */
         tag?: string;
         /** @description IANA time zone used to interpret dates and group results, for example America/New_York. */
@@ -20668,7 +22117,7 @@ export interface operations {
   };
   getSessionDataProperties: {
     parameters: {
-      query: {
+      query?: {
         /** @description Browser used by the visitor. */
         browser?: string;
         /** @description City of the visitor. */
@@ -20682,7 +22131,7 @@ export interface operations {
         /** @description Custom identifier assigned to the visitor. */
         distinctId?: string;
         /** @description End of the date range as a Unix timestamp in milliseconds. */
-        endAt: number;
+        endAt?: number;
         /** @description Filter by custom event name. */
         event?: string;
         /** @description Event type: 1 for a pageview or 2 for a custom event. */
@@ -20699,6 +22148,22 @@ export interface operations {
         os?: string;
         /** @description Filter by page URL path. */
         path?: string;
+        /** @description Relative date range, for example 7d or 30day, used instead of an explicit startAt/endAt range. */
+        period?:
+          | 'today'
+          | '24h'
+          | '7d'
+          | '30d'
+          | '0day'
+          | '24hour'
+          | '0week'
+          | '7day'
+          | '0month'
+          | '30day'
+          | '90day'
+          | '0year'
+          | '6month'
+          | '12month';
         /** @description Name of the custom event or session property. */
         propertyName?: string;
         /** @description Filter by page URL query string. */
@@ -20710,7 +22175,7 @@ export interface operations {
         /** @description ID of a saved segment used to filter results. */
         segment?: string;
         /** @description Start of the date range as a Unix timestamp in milliseconds. */
-        startAt: number;
+        startAt?: number;
         /** @description Tag attached to the tracked activity. */
         tag?: string;
         /** @description Filter by page title. */
@@ -20804,7 +22269,7 @@ export interface operations {
         /** @description Custom identifier assigned to the visitor. */
         distinctId?: string;
         /** @description End of the date range as a Unix timestamp in milliseconds. */
-        endAt: number;
+        endAt?: number;
         /** @description Filter by custom event name. */
         event?: string;
         /** @description Event type: 1 for a pageview or 2 for a custom event. */
@@ -20821,6 +22286,22 @@ export interface operations {
         os?: string;
         /** @description Filter by page URL path. */
         path?: string;
+        /** @description Relative date range, for example 7d or 30day, used instead of an explicit startAt/endAt range. */
+        period?:
+          | 'today'
+          | '24h'
+          | '7d'
+          | '30d'
+          | '0day'
+          | '24hour'
+          | '0week'
+          | '7day'
+          | '0month'
+          | '30day'
+          | '90day'
+          | '0year'
+          | '6month'
+          | '12month';
         /** @description Name of the custom event or session property. */
         propertyName: string;
         /** @description Filter by page URL query string. */
@@ -20832,7 +22313,7 @@ export interface operations {
         /** @description ID of a saved segment used to filter results. */
         segment?: string;
         /** @description Start of the date range as a Unix timestamp in milliseconds. */
-        startAt: number;
+        startAt?: number;
         /** @description Tag attached to the tracked activity. */
         tag?: string;
         /** @description IANA time zone used to interpret dates and group results, for example America/New_York. */
@@ -20928,7 +22409,7 @@ export interface operations {
         /** @description Custom identifier assigned to the visitor. */
         distinctId?: string;
         /** @description End of the date range as a Unix timestamp in milliseconds. */
-        endAt: number;
+        endAt?: number;
         /** @description Filter by custom event name. */
         event?: string;
         /** @description Event type: 1 for a pageview or 2 for a custom event. */
@@ -20945,6 +22426,22 @@ export interface operations {
         os?: string;
         /** @description Filter by page URL path. */
         path?: string;
+        /** @description Relative date range, for example 7d or 30day, used instead of an explicit startAt/endAt range. */
+        period?:
+          | 'today'
+          | '24h'
+          | '7d'
+          | '30d'
+          | '0day'
+          | '24hour'
+          | '0week'
+          | '7day'
+          | '0month'
+          | '30day'
+          | '90day'
+          | '0year'
+          | '6month'
+          | '12month';
         /** @description Name of the custom event or session property. */
         propertyName: string;
         /** @description Filter by page URL query string. */
@@ -20956,7 +22453,7 @@ export interface operations {
         /** @description ID of a saved segment used to filter results. */
         segment?: string;
         /** @description Start of the date range as a Unix timestamp in milliseconds. */
-        startAt: number;
+        startAt?: number;
         /** @description Tag attached to the tracked activity. */
         tag?: string;
         /** @description IANA time zone used to interpret dates and group results, for example America/New_York. */
@@ -21043,7 +22540,7 @@ export interface operations {
   };
   getSessionDataValues: {
     parameters: {
-      query: {
+      query?: {
         /** @description Browser used by the visitor. */
         browser?: string;
         /** @description City of the visitor. */
@@ -21059,7 +22556,7 @@ export interface operations {
         /** @description Custom identifier assigned to the visitor. */
         distinctId?: string;
         /** @description End of the date range as a Unix timestamp in milliseconds. */
-        endAt: number;
+        endAt?: number;
         /** @description Filter by custom event name. */
         event?: string;
         /** @description Event type: 1 for a pageview or 2 for a custom event. */
@@ -21076,6 +22573,22 @@ export interface operations {
         os?: string;
         /** @description Filter by page URL path. */
         path?: string;
+        /** @description Relative date range, for example 7d or 30day, used instead of an explicit startAt/endAt range. */
+        period?:
+          | 'today'
+          | '24h'
+          | '7d'
+          | '30d'
+          | '0day'
+          | '24hour'
+          | '0week'
+          | '7day'
+          | '0month'
+          | '30day'
+          | '90day'
+          | '0year'
+          | '6month'
+          | '12month';
         /** @description Name of the custom event or session property. */
         propertyName?: string;
         /** @description Filter by page URL query string. */
@@ -21087,7 +22600,7 @@ export interface operations {
         /** @description ID of a saved segment used to filter results. */
         segment?: string;
         /** @description Start of the date range as a Unix timestamp in milliseconds. */
-        startAt: number;
+        startAt?: number;
         /** @description Tag attached to the tracked activity. */
         tag?: string;
         /** @description Filter by page title. */
@@ -21205,6 +22718,22 @@ export interface operations {
         pageSize?: number;
         /** @description Filter by page URL path. */
         path?: string;
+        /** @description Relative date range, for example 7d or 30day, used instead of an explicit startAt/endAt range. */
+        period?:
+          | 'today'
+          | '24h'
+          | '7d'
+          | '30d'
+          | '0day'
+          | '24hour'
+          | '0week'
+          | '7day'
+          | '0month'
+          | '30day'
+          | '90day'
+          | '0year'
+          | '6month'
+          | '12month';
         /** @description Filter by page URL query string. */
         query?: string;
         /** @description Filter by referring URL. */
@@ -21315,8 +22844,61 @@ export interface operations {
         };
         content: {
           'application/json': {
-            canDelete: unknown;
-            stitchedSessionCount: unknown;
+            /** @description Browser used by the visitor. */
+            browser: string | null;
+            /** @description Whether the caller can delete this session. */
+            canDelete: boolean;
+            /** @description City of the visitor. */
+            city: string | null;
+            /** @description Country code of the visitor. */
+            country: string | null;
+            /** @description Device category used by the visitor. */
+            device: string | null;
+            /** @description Distinct ID of the session. Omitted unless exactly one distinct ID is linked. */
+            distinctId?: string;
+            /** @description Distinct IDs linked to the session. */
+            distinctIds: string[];
+            events: number;
+            /**
+             * Format: date-time
+             * @description Date and time of the first recorded activity.
+             */
+            firstAt: string;
+            /**
+             * Format: uuid
+             * @description Unique identifier of the resource.
+             */
+            id: string;
+            /** @description Preferred language reported by the visitor browser. */
+            language: string | null;
+            /**
+             * Format: date-time
+             * @description Date and time of the most recent recorded activity.
+             */
+            lastAt: string;
+            /** @description Operating system used by the visitor. */
+            os: string | null;
+            /** @description Domain of the session's first external referrer. */
+            referrerDomain: string | null;
+            /** @description Region or subdivision of the visitor. */
+            region: string | null;
+            /** @description Screen resolution of the visitor device. */
+            screen: string | null;
+            /** @description Number of sessions merged through the distinct ID, including this one. */
+            stitchedSessionCount: number;
+            /** @description Total visit duration in seconds. */
+            totaltime: number;
+            /** @description Pageview counts for the selected period. */
+            views: number;
+            /** @description Visit counts for the selected period. */
+            visits: number;
+            /**
+             * Format: uuid
+             * @description ID of the website.
+             */
+            websiteId: string;
+          } & {
+            [key: string]: unknown;
           };
         };
       };
@@ -21378,13 +22960,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': {
-            /**
-             * @description Whether the operation succeeded.
-             * @constant
-             */
-            ok: true;
-          };
+          'application/json': components['schemas']['Ok'];
         };
       };
       /** @description Bad request. */
@@ -21445,13 +23021,29 @@ export interface operations {
   };
   getWebsiteSessionActivity: {
     parameters: {
-      query: {
+      query?: {
         /** @description Custom identifier assigned to the visitor. */
         distinctId?: string;
         /** @description End of the date range as a Unix timestamp in milliseconds. */
-        endAt: number;
+        endAt?: number;
+        /** @description Relative date range, for example 7d or 30day, used instead of an explicit startAt/endAt range. */
+        period?:
+          | 'today'
+          | '24h'
+          | '7d'
+          | '30d'
+          | '0day'
+          | '24hour'
+          | '0week'
+          | '7day'
+          | '0month'
+          | '30day'
+          | '90day'
+          | '0year'
+          | '6month'
+          | '12month';
         /** @description Start of the date range as a Unix timestamp in milliseconds. */
-        startAt: number;
+        startAt?: number;
       };
       header?: never;
       path: {
@@ -21723,7 +23315,7 @@ export interface operations {
   };
   getWebsiteSessionStats: {
     parameters: {
-      query: {
+      query?: {
         /** @description Browser used by the visitor. */
         browser?: string;
         /** @description City of the visitor. */
@@ -21737,7 +23329,7 @@ export interface operations {
         /** @description Custom identifier assigned to the visitor. */
         distinctId?: string;
         /** @description End of the date range as a Unix timestamp in milliseconds. */
-        endAt: number;
+        endAt?: number;
         /** @description Filter by custom event name. */
         event?: string;
         /** @description Event type: 1 for a pageview or 2 for a custom event. */
@@ -21754,6 +23346,22 @@ export interface operations {
         os?: string;
         /** @description Filter by page URL path. */
         path?: string;
+        /** @description Relative date range, for example 7d or 30day, used instead of an explicit startAt/endAt range. */
+        period?:
+          | 'today'
+          | '24h'
+          | '7d'
+          | '30d'
+          | '0day'
+          | '24hour'
+          | '0week'
+          | '7day'
+          | '0month'
+          | '30day'
+          | '90day'
+          | '0year'
+          | '6month'
+          | '12month';
         /** @description Filter by page URL query string. */
         query?: string;
         /** @description Filter by referring URL. */
@@ -21763,7 +23371,7 @@ export interface operations {
         /** @description ID of a saved segment used to filter results. */
         segment?: string;
         /** @description Start of the date range as a Unix timestamp in milliseconds. */
-        startAt: number;
+        startAt?: number;
         /** @description Tag attached to the tracked activity. */
         tag?: string;
         /** @description Filter by page title. */
@@ -21851,7 +23459,7 @@ export interface operations {
         /** @description Custom identifier assigned to the visitor. */
         distinctId?: string;
         /** @description End of the date range as a Unix timestamp in milliseconds. */
-        endAt: number;
+        endAt?: number;
         /** @description Filter by custom event name. */
         event?: string;
         /** @description Event type: 1 for a pageview or 2 for a custom event. */
@@ -21868,6 +23476,22 @@ export interface operations {
         os?: string;
         /** @description Filter by page URL path. */
         path?: string;
+        /** @description Relative date range, for example 7d or 30day, used instead of an explicit startAt/endAt range. */
+        period?:
+          | 'today'
+          | '24h'
+          | '7d'
+          | '30d'
+          | '0day'
+          | '24hour'
+          | '0week'
+          | '7day'
+          | '0month'
+          | '30day'
+          | '90day'
+          | '0year'
+          | '6month'
+          | '12month';
         /** @description Filter by page URL query string. */
         query?: string;
         /** @description Filter by referring URL. */
@@ -21877,7 +23501,7 @@ export interface operations {
         /** @description ID of a saved segment used to filter results. */
         segment?: string;
         /** @description Start of the date range as a Unix timestamp in milliseconds. */
-        startAt: number;
+        startAt?: number;
         /** @description Tag attached to the tracked activity. */
         tag?: string;
         /** @description IANA time zone used to interpret dates and group results, for example America/New_York. */
@@ -22273,6 +23897,22 @@ export interface operations {
         os?: string;
         /** @description Filter by page URL path. */
         path?: string;
+        /** @description Relative date range, for example 7d or 30day, used instead of an explicit startAt/endAt range. */
+        period?:
+          | 'today'
+          | '24h'
+          | '7d'
+          | '30d'
+          | '0day'
+          | '24hour'
+          | '0week'
+          | '7day'
+          | '0month'
+          | '30day'
+          | '90day'
+          | '0year'
+          | '6month'
+          | '12month';
         /** @description Filter by page URL query string. */
         query?: string;
         /** @description Filter by referring URL. */
@@ -22716,6 +24356,22 @@ export interface operations {
         endAt?: number;
         /** @description Comma-separated resource IDs. Provide between 1 and 20 IDs. */
         ids: string;
+        /** @description Relative date range, for example 7d or 30day, used instead of an explicit startAt/endAt range. */
+        period?:
+          | 'today'
+          | '24h'
+          | '7d'
+          | '30d'
+          | '0day'
+          | '24hour'
+          | '0week'
+          | '7day'
+          | '0month'
+          | '30day'
+          | '90day'
+          | '0year'
+          | '6month'
+          | '12month';
         /** @description Start of the date range as a Unix timestamp in milliseconds. */
         startAt?: number;
         /** @description IANA time zone used to interpret dates and group results, for example America/New_York. */

@@ -12,6 +12,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
+  APP_SECRET: "test-app-secret-not-for-production"
   DATABASE_URL: "postgresql://user:pass@localhost:5432/dummy"
   SKIP_DB_CHECK: 1
 
