@@ -87,7 +87,10 @@ export async function middleware(request: NextRequest) {
   // =================================================================
 
   const tokenQuery =
-    searchParams.get('token') || searchParams.get('key') || searchParams.get('secret');
+    searchParams.get('token') ||
+    searchParams.get('key') ||
+    searchParams.get('secret') ||
+    searchParams.get('secure');
   const tokenCookie = request.cookies.get('umami_access_token')?.value;
 
   // 校验 A：URL 中携带了正确的密钥（如 ?secret=xxx）
@@ -97,6 +100,7 @@ export async function middleware(request: NextRequest) {
     url.searchParams.delete('token');
     url.searchParams.delete('key');
     url.searchParams.delete('secret');
+    url.searchParams.delete('secure');
 
     const response = NextResponse.redirect(url);
 

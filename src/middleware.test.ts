@@ -55,6 +55,17 @@ describe('stealth middleware MCP allowlist', () => {
     vi.unstubAllEnvs();
   });
 
+  test('accepts the secure query parameter and strips it from the redirect', async () => {
+    vi.stubEnv('ACCESS_TOKEN', 'private-access-token');
+    const response = await middleware(
+      new NextRequest('https://analytics.example.com/login?secure=private-access-token'),
+    );
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get('location')).toBe('https://analytics.example.com/login');
+    expect(response.headers.get('set-cookie')).toContain('umami_access_token=');
+  });
+
   test('lets the MCP route perform its own bearer authentication', async () => {
     vi.stubEnv('ACCESS_TOKEN', 'private-access-token');
     const response = await middleware(new NextRequest('https://analytics.example.com/mcp'));
